@@ -1,0 +1,302 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id            Int            @id @default(autoincrement())
+  name          String
+  users         User[]
+  subscriptions Subscription[]
+  teams         Team[]
+  players       Player[]
+  tournaments   Tournament[]
+  groups        Group[]
+  matches       Match[]
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  @@map("tenants")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("user") // admin, user, coach
+  tenantId  Int
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  teams     Team[]   @relation("Coach")
+  players   Player[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Team {
+  id              String           @id @default(cuid())
+  name            String
+  logo            String?
+  coachId         Int?
+  coachName       String?
+  coach           User?            @relation("Coach", fields: [coachId], references: [id])
+  players         String[]         // Array of player IDs as strings
+  wins            Int              @default(0)
+  draws           Int              @default(0)
+  losses          Int              @default(0)
+  goalsScored     Int              @default(0)
+  matchesPlayed   Int              @default(0)
+  tenantId        Int?
+  tenant          Tenant?          @relation(fields: [tenantId], references: [id])
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  
+  // Relations
+  playerRecords   Player[]
+  tournamentTeams TournamentTeam[]
+  groupTeams      GroupTeam[]
+  homeMatches     Match[]          @relation("HomeMatches")
+  awayMatches     Match[]          @relation("AwayMatches")
+  paymentTransactions PaymentTransaction[]
+  socialPosts     SocialPost[]
+
+  @@map("teams")
+}
+
+model Player {
+  id           String   @id @default(cuid())
+  name         String
+  position     String   // Gardien, Défenseur, Milieu, Attaquant
+  level        Int      @default(3) // 1-5
+  age          Int
+  teamId       String?  @map("team_id")
+  team         Team?    @relation(fields: [teamId], references: [id])
+  jerseyNumber Int?
+  userId       Int?
+  user         User?    @relation(fields: [userId], references: [id])
+  tenantId     Int?
+  tenant       Tenant?  @relation(fields: [tenantId], references: [id])
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  playerStats  PlayerStats[]
+  playerBadges PlayerBadge[]
+  socialPosts  SocialPost[]
+
+  @@map("players")
+}
+
+model Tournament {
+  id              String           @id @default(cuid())
+  name            String
+  logo            String?
+  startDate       DateTime
+  endDate         DateTime
+  prize           String?
+  rules           String?
+  status          String           @default("upcoming") // upcoming, active, completed
+  numberOfGroups  Int              @default(2) @map("number_of_groups")
+  drawCompleted   Boolean          @default(false) @map("draw_completed")
+  teamsPerGroup   Int              @default(4) @map("teams_per_group")
+  tenantId        Int?
+  tenant          Tenant?          @relation(fields: [tenantId], references: [id])
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  
+  // Relations
+  teams           TournamentTeam[]
+  groups          Group[]
+  matches         Match[]
+  paymentTransactions PaymentTransaction[]
+  playerStats     PlayerStats[]
+  playerBadges    PlayerBadge[]
+  socialPosts     SocialPost[]
+
+  @@map("tournaments")
+}
+
+model TournamentTeam {
+  id           String     @id @default(cuid())
+  tournamentId String
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  teamId       String
+  team         Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  groupId      String?    // Added for group assignment
+
+  @@unique([tournamentId, teamId])
+  @@map("tournament_teams")
+}
+
+model Group {
+  id           String      @id @default(cuid())
+  name         String
+  tournamentId String?
+  tournament   Tournament? @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  groupTeams   GroupTeam[]
+  matches      Match[]
+  tenantId     Int?
+  tenant       Tenant?     @relation(fields: [tenantId], references: [id])
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  @@map("groups")
+}
+
+model GroupTeam {
+  id           String @id @default(cuid())
+  groupId      String
+  group        Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  teamId       String
+  team         Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  played       Int    @default(0)
+  wins         Int    @default(0)
+  draws        Int    @default(0)
+  losses       Int    @default(0)
+  goalsFor     Int    @default(0)
+  goalsAgainst Int    @default(0)
+  points       Int    @default(0)
+
+  @@unique([groupId, teamId])
+  @@map("group_teams")
+}
+
+model Match {
+  id           String      @id @default(cuid())
+  date         String      // Date as string to match frontend
+  time         String
+  venue        String
+  homeTeam     String      // Team ID as string
+  awayTeam     String      // Team ID as string
+  homeScore    Int?
+  awayScore    Int?
+  status       String      @default("scheduled") // scheduled, in_progress, completed
+  tournamentId String
+  tournament   Tournament  @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  groupId      String?
+  group        Group?      @relation(fields: [groupId], references: [id])
+  tenantId     Int?
+  tenant       Tenant?     @relation(fields: [tenantId], references: [id])
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+  
+  // Relations for team references
+  homeTeamRef  Team        @relation("HomeMatches", fields: [homeTeam], references: [id])
+  awayTeamRef  Team        @relation("AwayMatches", fields: [awayTeam], references: [id])
+
+  @@map("matches")
+}
+
+model Subscription {
+  id        Int      @id @default(autoincrement())
+  tenantId  Int
+  plan      String
+  status    String
+  startDate DateTime
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("subscriptions")
+}
+
+model PaymentTransaction {
+  id            Int      @id @default(autoincrement())
+  transactionId String   @unique @map("transaction_id")
+  tournamentId  String
+  tournament    Tournament @relation(fields: [tournamentId], references: [id])
+  teamId        String
+  team          Team     @relation(fields: [teamId], references: [id])
+  amount        Float
+  commission    Float
+  netAmount     Float    @map("net_amount")
+  paymentMethod String   @map("payment_method") // flouci, d17, card, cash
+  playerCount   Int      @map("player_count")
+  organizerId   Int      @map("organizer_id")
+  status        String   @default("pending") // pending, completed, failed
+  paymentData   String?  @map("payment_data") // JSON string
+  completedAt   DateTime? @map("completed_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("payment_transactions")
+}
+
+model PlayerStats {
+  id          Int      @id @default(autoincrement())
+  playerId    String
+  player      Player   @relation(fields: [playerId], references: [id])
+  tournamentId String?
+  tournament  Tournament? @relation(fields: [tournamentId], references: [id])
+  goals       Int      @default(0)
+  assists     Int      @default(0)
+  yellowCards Int      @default(0) @map("yellow_cards")
+  redCards    Int      @default(0) @map("red_cards")
+  matchesPlayed Int    @default(0) @map("matches_played")
+  minutesPlayed Int    @default(0) @map("minutes_played")
+  rating      Float    @default(0.0)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("player_stats")
+}
+
+model PlayerBadge {
+  id          Int      @id @default(autoincrement())
+  playerId    String
+  player      Player   @relation(fields: [playerId], references: [id])
+  badgeType   String   @map("badge_type") // MVP, TopScorer, FairPlay, etc.
+  badgeName   String   @map("badge_name")
+  description String
+  icon        String
+  earnedAt    DateTime @default(now()) @map("earned_at")
+  tournamentId String?
+  tournament  Tournament? @relation(fields: [tournamentId], references: [id])
+
+  @@map("player_badges")
+}
+
+model Stadium {
+  id          Int      @id @default(autoincrement())
+  name        String
+  address     String
+  city        String
+  phone       String?
+  email       String?
+  website     String?
+  logo        String?
+  photos      String[] // Array of photo URLs
+  description String?
+  facilities  String[] // Array of facility names
+  isPartner   Boolean  @default(false) @map("is_partner")
+  partnerLevel String? @map("partner_level") // bronze, silver, gold, platinum
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("stadiums")
+}
+
+model SocialPost {
+  id          Int      @id @default(autoincrement())
+  playerId    String?
+  player      Player?  @relation(fields: [playerId], references: [id])
+  teamId      String?
+  team        Team?    @relation(fields: [teamId], references: [id])
+  tournamentId String?
+  tournament  Tournament? @relation(fields: [tournamentId], references: [id])
+  content     String
+  media       String[] // Array of media URLs
+  hashtags    String[] // Array of hashtags
+  likes       Int      @default(0)
+  comments    Int      @default(0)
+  shares      Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("social_posts")
+}

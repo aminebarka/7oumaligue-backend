@@ -1,0 +1,31 @@
+TSError: ⨯ Unable to compile TypeScript:
+src/routes/auth.routes.ts(129,24): error TS2339: Property 'user' does not exist on type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+src/routes/auth.routes.ts(161,22): error TS2339: Property 'user' does not exist on type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+src/routes/auth.routes.ts(208,22): error TS2339: Property 'user' does not exist on type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+
+    at createTSError (C:\Users\User\Desktop\work\7oumaligue\backend\node_modules\ts-node\src\index.ts:859:12)
+    at reportTSError (C:\Users\User\Desktop\work\7oumaligue\backend\node_modules\ts-node\src\index.ts:863:19)
+    at getOutput (C:\Users\User\Desktop\work\7oumaligue\backend\node_modules\ts-node\src\index.ts:1077:36)
+    at Object.compile (C:\Users\User\Desktop\work\7oumaligue\backend\node_modules\ts-node\src\index.ts:1433:41)
+    at Module.m._compile (C:\Users\User\Desktop\work\7oumaligue\backend\node_modules\ts-node\src\index.ts:1617:30)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1416:10)
+    at Object.require.extensions.<computed> [as .ts] (C:\Users\User\Desktop\work\7oumaligue\backend\node_modules\ts-node\src\index.ts:1621:12)
+    at Module.load (node:internal/modules/cjs/loader:1208:32)
+    at Function.Module._load (node:internal/modules/cjs/loader:1024:12)
+    at Module.require (node:internal/modules/cjs/loader:1233:19)
+Channel is already closed can't broadcast error:
+TypeError: Converting circular structure to JSON
+    --> starting at object with constructor 'SourceFileObject'
+    |     property 'statements' -> object with constructor 'Array'
+    |     index 0 -> object with constructor 'NodeObject'
+    --- property 'parent' closes the circle
+    at stringify (<anonymous>)
+    at writeChannelMessage (node:internal/child_process/serialization:159:20)
+    at process.target._send (node:internal/child_process:852:17)
+    at process.target.send (node:internal/child_process:752:19)
+    at process.send (C:\Users\User\Desktop\work\7oumaligue\backend\node_modules\pm2\lib\ProcessContainer.js:52:21)
+    at process.uncaughtListener (C:\Users\User\Desktop\work\7oumaligue\backend\node_modules\pm2\lib\ProcessContainer.js:260:19)
+    at process.emit (node:events:531:35)
+    at process.emit (node:domain:488:12)
+    at process.emit.sharedData.processEmitHook.installedValue [as emit] (C:\Users\User\Desktop\work\7oumaligue\backend\node_modules\@cspotcode\source-map-support\source-map-support.js:745:40)
+    at process._fatalException (node:internal/process/execution:188:25)
