@@ -62,6 +62,7 @@ model Team {
   updatedAt       DateTime         @updatedAt @map("updated_at")
   groupTeams      GroupTeam[]
   homeMatches     Match[]          @relation("HomeMatches")
+  awayMatches     Match[]          @relation("AwayMatches")
   playerRecords   Player[]
   coach           User?            @relation("Coach", fields: [coachId], references: [id])
   tenant          Tenant?          @relation(fields: [tenantId], references: [id])
@@ -196,7 +197,10 @@ model Match {
   id           String   @id @default(cuid())
   homeTeamId   String?  @default("")
   homeTeam     String?  @default("")
+  awayTeamId   String?  @default("")
+  awayTeam     String?  @default("")
   homeScore    Int?
+  awayScore    Int?
   date         DateTime @default(now())
   time         String?  @default("")
   venue        String?  @default("")
@@ -207,6 +211,7 @@ model Match {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @default(now()) @map("updated_at")
   homeTeamRef  Team?    @relation("HomeMatches", fields: [homeTeamId], references: [id])
+  awayTeamRef  Team?    @relation("AwayMatches", fields: [awayTeamId], references: [id])
   group        Group?   @relation(fields: [groupId], references: [id])
   tournament   Tournament? @relation(fields: [tournamentId], references: [id])
   tenant       Tenant?  @relation(fields: [tenantId], references: [id])

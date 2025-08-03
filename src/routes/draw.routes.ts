@@ -3,11 +3,14 @@ import { authenticateToken } from '../middleware/auth.middleware'
 import { PrismaClient } from '@prisma/client'
 import { success, created, badRequest, notFound } from '../utils/apiResponse'
 
+// Alias for authMiddleware to fix import issue
+const authMiddleware = authenticateToken
+
 const router = Router()
 const prisma = new PrismaClient()
 
 // Route pour effectuer le tirage de groupes
-router.post('/tournaments/:id/draw', authMiddleware, async (req, res) => {
+router.post('/tournaments/:id/draw', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params
     const { numberOfGroups } = req.body
@@ -15,21 +18,25 @@ router.post('/tournaments/:id/draw', authMiddleware, async (req, res) => {
     const tournament = await prisma.tournament.findUnique({
       where: { id: String(id) },
       include: {
-        teams: true
+        tournamentTeams: {
+          include: {
+            team: true
+          }
+        }
       }
     })
 
     if (!tournament) {
-      return ApiResponse.error(res, 'Tournoi non trouvé', 404)
+      return notFound(res, 'Tournoi non trouvé')
     }
 
     if (tournament.drawCompleted) {
-      return ApiResponse.error(res, 'Le tirage a déjà été effectué pour ce tournoi')
+      return badRequest(res, 'Le tirage a déjà été effectué pour ce tournoi')
     }
 
-    const teams = tournament.teams
+    const teams = tournament.tournamentTeams.map(tt => tt.team)
     if (teams.length < numberOfGroups * 2) {
-      return ApiResponse.error(res, 'Nombre d\'équipes insuffisant pour le nombre de groupes demandé')
+      return badRequest(res, 'Nombre d\'équipes insuffisant pour le nombre de groupes demandé')
     }
 
     // Mélanger les équipes aléatoirement
@@ -86,9 +93,9 @@ router.post('/tournaments/:id/draw', authMiddleware, async (req, res) => {
     }
 
     // Émettre un événement de tirage (pour WebSocket)
-    emitDrawEvent(tournament.id, groups)
+    emitDrawEvent(parseInt(tournament.id), groups)
 
-    return ApiResponse.success(res, {
+    return success(res, {
       message: 'Tirage effectué avec succès',
       groups: groups.map(group => ({
         name: group.name,
@@ -101,7 +108,7 @@ router.post('/tournaments/:id/draw', authMiddleware, async (req, res) => {
     })
   } catch (error) {
     console.error('Erreur lors du tirage:', error)
-    return ApiResponse.error(res, 'Erreur lors du tirage')
+    return badRequest(res, 'Erreur lors du tirage')
   }
 })
 
@@ -112,7 +119,11 @@ router.get('/tournaments/:id/draw-animation', authMiddleware, async (req, res) =
     const tournament = await prisma.tournament.findUnique({
       where: { id: String(id) },
       include: {
-        teams: true,
+        tournamentTeams: {
+          include: {
+            team: true
+          }
+        },
         groups: {
           include: {
             groupTeams: {
@@ -126,11 +137,11 @@ router.get('/tournaments/:id/draw-animation', authMiddleware, async (req, res) =
     })
 
     if (!tournament) {
-      return ApiResponse.error(res, 'Tournoi non trouvé', 404)
+      return notFound(res, 'Tournoi non trouvé')
     }
 
     if (!tournament.drawCompleted) {
-      return ApiResponse.error(res, 'Le tirage n\'a pas encore été effectué')
+      return badRequest(res, 'Le tirage n\'a pas encore été effectué')
     }
 
     // Préparer les données pour l'animation
@@ -148,22 +159,22 @@ router.get('/tournaments/:id/draw-animation', authMiddleware, async (req, res) =
           logo: gt.team.logo
         }))
       })),
-      remainingTeams: tournament.teams.filter(team => 
+      remainingTeams: tournament.tournamentTeams.map(tt => tt.team).filter(team => 
         !tournament.groups.some(group => 
           group.groupTeams.some(gt => gt.teamId === team.id)
         )
       )
     }
 
-    return ApiResponse.success(res, drawData)
+    return success(res, drawData)
   } catch (error) {
     console.error('Erreur lors de la récupération de l\'animation:', error)
-    return ApiResponse.error(res, 'Erreur lors de la récupération de l\'animation')
+    return badRequest(res, 'Erreur lors de la récupération de l\'animation')
   }
 })
 
 // Route pour annuler le tirage
-router.delete('/tournaments/:id/draw', authMiddleware, async (req, res) => {
+router.delete('/tournaments/:id/draw', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params
 
@@ -179,7 +190,7 @@ router.delete('/tournaments/:id/draw', authMiddleware, async (req, res) => {
     })
 
     if (!tournament) {
-      return ApiResponse.error(res, 'Tournoi non trouvé', 404)
+      return notFound(res, 'Tournoi non trouvé')
     }
 
     // Supprimer tous les groupes et leurs équipes
@@ -202,10 +213,10 @@ router.delete('/tournaments/:id/draw', authMiddleware, async (req, res) => {
       }
     })
 
-    return ApiResponse.success(res, { message: 'Tirage annulé avec succès' })
+    return success(res, { message: 'Tirage annulé avec succès' })
   } catch (error) {
     console.error('Erreur lors de l\'annulation du tirage:', error)
-    return ApiResponse.error(res, 'Erreur lors de l\'annulation du tirage')
+    return badRequest(res, 'Erreur lors de l\'annulation du tirage')
   }
 })
 
@@ -225,7 +236,7 @@ function emitDrawEvent(tournamentId: number, groups: any[]) {
   console.log(`🎲 Événement de tirage émis pour le tournoi ${tournamentId}`)
   console.log('Groupes tirés:', groups.map(g => ({
     name: g.name,
-    teams: g.teams.map(t => t.name)
+    teams: g.teams.map((t: any) => t.name)
   })))
 }
 

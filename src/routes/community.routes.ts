@@ -42,10 +42,10 @@ router.get('/community/leagues', async (req, res) => {
       }
     })
 
-    return ApiResponse.success(res, leagues)
+    return success(res, leagues)
   } catch (error) {
     console.error('Erreur lors de la récupération des ligues:', error)
-    return ApiResponse.error(res, 'Erreur lors de la récupération des ligues')
+    return badRequest(res, 'Erreur lors de la récupération des ligues')
   }
 })
 
@@ -77,15 +77,15 @@ router.get('/community/standings', async (req, res) => {
       ]
     })
 
-    return ApiResponse.success(res, standings)
+    return success(res, standings)
   } catch (error) {
     console.error('Erreur lors de la récupération du classement:', error)
-    return ApiResponse.error(res, 'Erreur lors de la récupération du classement')
+    return badRequest(res, 'Erreur lors de la récupération du classement')
   }
 })
 
 // Route pour créer un post sur le mur social
-router.post('/feed', authMiddleware, async (req, res) => {
+router.post('/feed', authenticateToken, async (req, res) => {
   try {
     const {
       content,
@@ -104,15 +104,15 @@ router.post('/feed', authMiddleware, async (req, res) => {
         tournamentId: tournamentId ? String(tournamentId) : null,
         matchId: matchId ? String(matchId) : null,
         isPublic: isPublic !== false,
-        playerId: req.user?.userId || 0,
+        playerId: String(req.user?.userId || 0),
         teamId: null // À remplir selon le contexte
       }
     })
 
-    return ApiResponse.success(res, post, 'Post créé avec succès')
+    return success(res, post, 'Post créé avec succès')
   } catch (error) {
     console.error('Erreur lors de la création du post:', error)
-    return ApiResponse.error(res, 'Erreur lors de la création du post')
+    return badRequest(res, 'Erreur lors de la création du post')
   }
 })
 
@@ -144,36 +144,34 @@ router.get('/feed', async (req, res) => {
           }
         },
         tournament: true,
-        match: true,
-        likes: true,
-        comments: true
+        match: true
       },
       orderBy: {
         createdAt: 'desc'
       },
-      skip: (String(page as string) - 1) * String(limit as string),
-      take: String(limit as string)
+      skip: (parseInt(page as string) - 1) * parseInt(limit as string),
+      take: parseInt(limit as string)
     })
 
     const total = await prisma.socialPost.count({ where: whereClause })
 
-    return ApiResponse.success(res, {
+    return success(res, {
       posts,
       pagination: {
-        page: String(page as string),
-        limit: String(limit as string),
+        page: parseInt(page as string),
+        limit: parseInt(limit as string),
         total,
-        pages: Math.ceil(total / String(limit as string))
+        pages: Math.ceil(total / parseInt(limit as string))
       }
     })
   } catch (error) {
     console.error('Erreur lors de la récupération du feed:', error)
-    return ApiResponse.error(res, 'Erreur lors de la récupération du feed')
+    return badRequest(res, 'Erreur lors de la récupération du feed')
   }
 })
 
 // Route pour voter MVP / meilleur but
-router.post('/votes', authMiddleware, async (req, res) => {
+router.post('/votes', authenticateToken, async (req, res) => {
   try {
     const {
       type, // 'mvp', 'best_goal', 'best_save', etc.
@@ -188,32 +186,30 @@ router.post('/votes', authMiddleware, async (req, res) => {
       where: {
         userId: req.user?.userId || 0,
         type,
-        targetId: String(targetId),
+        targetId: parseInt(targetId),
         targetType,
         tournamentId: String(tournamentId)
       }
     })
 
     if (existingVote) {
-      return ApiResponse.error(res, 'Vous avez déjà voté pour cette catégorie', 409)
+      return badRequest(res, 'Vous avez déjà voté pour cette catégorie')
     }
 
     const vote = await prisma.vote.create({
       data: {
         userId: req.user?.userId || 0,
         type,
-        targetId: String(targetId),
+        targetId: parseInt(targetId),
         targetType,
-        tournamentId: String(tournamentId),
-        reason,
-        createdAt: new Date()
+        tournamentId: String(tournamentId)
       }
     })
 
-    return ApiResponse.success(res, vote, 'Vote enregistré avec succès')
+    return success(res, vote, 'Vote enregistré avec succès')
   } catch (error) {
     console.error('Erreur lors de l\'enregistrement du vote:', error)
-    return ApiResponse.error(res, 'Erreur lors de l\'enregistrement du vote')
+    return badRequest(res, 'Erreur lors de l\'enregistrement du vote')
   }
 })
 
@@ -243,7 +239,7 @@ router.get('/votes', async (req, res) => {
           id: 'desc'
         }
       },
-      take: String(limit as string)
+      take: parseInt(limit as string)
     })
 
     // Enrichir avec les détails des cibles
@@ -252,12 +248,12 @@ router.get('/votes', async (req, res) => {
         let target
         if (vote.targetType === 'player') {
           target = await prisma.player.findUnique({
-            where: { id: vote.targetId },
+            where: { id: String(vote.targetId) },
             include: { team: true }
           })
         } else if (vote.targetType === 'match') {
           target = await prisma.match.findUnique({
-            where: { id: vote.targetId },
+            where: { id: String(vote.targetId) },
             include: {
               homeTeamRef: true,
               group: true,
@@ -269,21 +265,21 @@ router.get('/votes', async (req, res) => {
         return {
           targetId: vote.targetId,
           targetType: vote.targetType,
-          votes: vote._count.id,
+          votes: vote._count?.id || 0,
           target
         }
       })
     )
 
-    return ApiResponse.success(res, enrichedVotes)
+    return success(res, enrichedVotes)
   } catch (error) {
     console.error('Erreur lors de la récupération des votes:', error)
-    return ApiResponse.error(res, 'Erreur lors de la récupération des votes')
+    return badRequest(res, 'Erreur lors de la récupération des votes')
   }
 })
 
 // Route pour rejoindre une équipe en tant que fan
-router.post('/teams/:id/fans', authMiddleware, async (req, res) => {
+router.post('/teams/:id/fans', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params
     const { level = 'supporter' } = req.body // 'supporter', 'ultra', 'membre'
@@ -297,7 +293,7 @@ router.post('/teams/:id/fans', authMiddleware, async (req, res) => {
     })
 
     if (existingFan) {
-      return ApiResponse.error(res, 'Vous êtes déjà fan de cette équipe', 409)
+      return badRequest(res, 'Vous êtes déjà fan de cette équipe')
     }
 
     const fan = await prisma.teamFan.create({
@@ -305,7 +301,7 @@ router.post('/teams/:id/fans', authMiddleware, async (req, res) => {
         teamId: String(id),
         userId: req.user?.userId || 0,
         level,
-        joinedAt: new Date()
+
       },
       include: {
         team: true,
@@ -313,10 +309,10 @@ router.post('/teams/:id/fans', authMiddleware, async (req, res) => {
       }
     })
 
-    return ApiResponse.success(res, fan, 'Vous êtes maintenant fan de cette équipe')
+    return success(res, fan, 'Vous êtes maintenant fan de cette équipe')
   } catch (error) {
     console.error('Erreur lors de l\'ajout du fan:', error)
-    return ApiResponse.error(res, 'Erreur lors de l\'ajout du fan')
+    return badRequest(res, 'Erreur lors de l\'ajout du fan')
   }
 })
 
@@ -343,29 +339,29 @@ router.get('/teams/:id/fans', async (req, res) => {
         { level: 'desc' },
         { joinedAt: 'asc' }
       ],
-      skip: (String(page as string) - 1) * String(limit as string),
-      take: String(limit as string)
+      skip: (parseInt(page as string) - 1) * parseInt(limit as string),
+      take: parseInt(limit as string)
     })
 
     const total = await prisma.teamFan.count({ where: whereClause })
 
-    return ApiResponse.success(res, {
+    return success(res, {
       fans,
       pagination: {
-        page: String(page as string),
-        limit: String(limit as string),
+        page: parseInt(page as string),
+        limit: parseInt(limit as string),
         total,
-        pages: Math.ceil(total / String(limit as string))
+        pages: Math.ceil(total / parseInt(limit as string))
       }
     })
   } catch (error) {
     console.error('Erreur lors de la récupération des fans:', error)
-    return ApiResponse.error(res, 'Erreur lors de la récupération des fans')
+    return badRequest(res, 'Erreur lors de la récupération des fans')
   }
 })
 
 // Route pour créer une ligue communautaire
-router.post('/community/leagues', authMiddleware, async (req, res) => {
+router.post('/community/leagues', authenticateToken, async (req, res) => {
   try {
     const {
       name,
@@ -384,7 +380,7 @@ router.post('/community/leagues', authMiddleware, async (req, res) => {
         description,
         region,
         season,
-        maxTeams: String(maxTeams),
+        maxTeams: parseInt(maxTeams),
         rules,
         startDate: new Date(startDate),
         endDate: new Date(endDate),
@@ -394,46 +390,46 @@ router.post('/community/leagues', authMiddleware, async (req, res) => {
       }
     })
 
-    return ApiResponse.success(res, league, 'Ligue communautaire créée avec succès')
+    return success(res, league, 'Ligue communautaire créée avec succès')
   } catch (error) {
     console.error('Erreur lors de la création de la ligue:', error)
-    return ApiResponse.error(res, 'Erreur lors de la création de la ligue')
+    return badRequest(res, 'Erreur lors de la création de la ligue')
   }
 })
 
 // Route pour rejoindre une ligue communautaire
-router.post('/community/leagues/:id/join', authMiddleware, async (req, res) => {
+router.post('/community/leagues/:id/join', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params
     const { teamId } = req.body
 
     const league = await prisma.communityLeague.findUnique({
-      where: { id: String(id) },
+      where: { id: parseInt(id) },
       include: {
         participants: true
       }
     })
 
     if (!league) {
-      return ApiResponse.error(res, 'Ligue non trouvée', 404)
+      return notFound(res, 'Ligue non trouvée')
     }
 
-    if (league.participants.length >= league.maxTeams) {
-      return ApiResponse.error(res, 'La ligue est complète', 409)
+    if (league.participants && league.participants.length >= league.maxTeams) {
+      return badRequest(res, 'La ligue est complète')
     }
 
     const participant = await prisma.communityLeagueParticipant.create({
       data: {
-        leagueId: String(id),
+        leagueId: parseInt(id),
         teamId: String(teamId),
-        joinedAt: new Date()
+
       }
     })
 
-    return ApiResponse.success(res, participant, 'Équipe ajoutée à la ligue')
+    return success(res, participant, 'Équipe ajoutée à la ligue')
   } catch (error) {
     console.error('Erreur lors de l\'ajout à la ligue:', error)
-    return ApiResponse.error(res, 'Erreur lors de l\'ajout à la ligue')
+    return badRequest(res, 'Erreur lors de l\'ajout à la ligue')
   }
 })
 

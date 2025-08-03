@@ -37,7 +37,7 @@ router.get('/players/:id/card', async (req, res) => {
     })
 
     if (!player) {
-      return ApiResponse.error(res, 'Joueur non trouvé', 404)
+      return notFound(res, 'Joueur non trouvé')
     }
 
     // Calculer les statistiques globales
@@ -69,7 +69,7 @@ router.get('/players/:id/card', async (req, res) => {
     }
 
     // Retourner les données JSON pour l'affichage HTML
-    return ApiResponse.success(res, {
+    return success(res, {
       player: {
         id: player.id,
         name: player.name,
@@ -83,11 +83,11 @@ router.get('/players/:id/card', async (req, res) => {
       averageRating: Math.round(averageRating * 10) / 10,
       reputationLevel,
       badges: player.playerBadges,
-      achievements: await getPlayerAchievements(player.id)
+      achievements: await getPlayerAchievements(parseInt(player.id))
     })
   } catch (error) {
     console.error('Erreur lors de la génération de la carte:', error)
-    return ApiResponse.error(res, 'Erreur lors de la génération de la carte')
+    return badRequest(res, 'Erreur lors de la génération de la carte')
   }
 })
 
@@ -99,7 +99,7 @@ router.get('/players/:slug', async (req, res) => {
     const player = await prisma.player.findFirst({
       where: {
         OR: [
-          { id: String(slug) || 0 },
+          { id: String(slug) },
           { name: { contains: slug, mode: 'insensitive' } }
         ]
       },
@@ -125,7 +125,7 @@ router.get('/players/:slug', async (req, res) => {
     })
 
     if (!player) {
-      return ApiResponse.error(res, 'Joueur non trouvé', 404)
+      return notFound(res, 'Joueur non trouvé')
     }
 
     // Calculer les statistiques
@@ -147,7 +147,7 @@ router.get('/players/:slug', async (req, res) => {
     return res.send(publicProfileHTML)
   } catch (error) {
     console.error('Erreur lors de la génération du profil public:', error)
-    return ApiResponse.error(res, 'Erreur lors de la génération du profil public')
+    return badRequest(res, 'Erreur lors de la génération du profil public')
   }
 })
 
@@ -156,12 +156,12 @@ router.get('/players/:id/achievements', async (req, res) => {
   try {
     const { id } = req.params
 
-    const achievements = await getPlayerAchievements(String(id))
+    const achievements = await getPlayerAchievements(parseInt(id))
 
-    return ApiResponse.success(res, achievements)
+    return success(res, achievements)
   } catch (error) {
     console.error('Erreur lors de la récupération des réalisations:', error)
-    return ApiResponse.error(res, 'Erreur lors de la récupération des réalisations')
+    return badRequest(res, 'Erreur lors de la récupération des réalisations')
   }
 })
 
@@ -179,7 +179,7 @@ router.get('/players/:id/reputation', async (req, res) => {
     })
 
     if (!player) {
-      return ApiResponse.error(res, 'Joueur non trouvé', 404)
+      return notFound(res, 'Joueur non trouvé')
     }
 
     const totalStats = player.playerStats.reduce((acc, stat) => ({
@@ -192,7 +192,7 @@ router.get('/players/:id/reputation', async (req, res) => {
     const reputationLevel = calculateReputationLevel(totalStats, player.playerBadges.length)
     const reputationPoints = calculateReputationPoints(totalStats, player.playerBadges)
 
-    return ApiResponse.success(res, {
+    return success(res, {
       level: reputationLevel,
       points: reputationPoints,
       stats: totalStats,
@@ -201,12 +201,12 @@ router.get('/players/:id/reputation', async (req, res) => {
     })
   } catch (error) {
     console.error('Erreur lors de la récupération de la réputation:', error)
-    return ApiResponse.error(res, 'Erreur lors de la récupération de la réputation')
+    return badRequest(res, 'Erreur lors de la récupération de la réputation')
   }
 })
 
 // Route pour mettre à jour la réputation
-router.patch('/players/:id/reputation', authMiddleware, async (req, res) => {
+router.patch('/players/:id/reputation', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params
     const { points, reason } = req.body
@@ -217,7 +217,7 @@ router.patch('/players/:id/reputation', authMiddleware, async (req, res) => {
     })
 
     if (!player) {
-      return ApiResponse.error(res, 'Joueur non trouvé', 404)
+      return notFound(res, 'Joueur non trouvé')
     }
 
     // Log de la modification de réputation
@@ -230,10 +230,10 @@ router.patch('/players/:id/reputation', authMiddleware, async (req, res) => {
       }
     })
 
-    return ApiResponse.success(res, { message: 'Réputation mise à jour' })
+    return success(res, { message: 'Réputation mise à jour' })
   } catch (error) {
     console.error('Erreur lors de la mise à jour de la réputation:', error)
-    return ApiResponse.error(res, 'Erreur lors de la mise à jour de la réputation')
+    return badRequest(res, 'Erreur lors de la mise à jour de la réputation')
   }
 })
 
@@ -280,16 +280,16 @@ function getNextLevelInfo(currentLevel: string, currentPoints: number): any {
 
 async function getPlayerAchievements(playerId: number): Promise<any> {
   const stats = await prisma.playerStats.findMany({
-    where: { playerId },
+    where: { playerId: String(playerId) },
     include: { tournament: true }
   })
 
   const badges = await prisma.playerBadge.findMany({
-    where: { playerId },
+    where: { playerId: String(playerId) },
     include: { tournament: true }
   })
 
-  const achievements = {
+  const achievements: any = {
     trophies: [],
     records: [],
     milestones: []

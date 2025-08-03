@@ -96,7 +96,7 @@ export class PaymentController {
         netAmount
       }, 'Demande de paiement créée avec succès')
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erreur lors de la création du paiement:', error)
       return error(res, 'Erreur lors de la création du paiement')
     }
@@ -129,7 +129,7 @@ export class PaymentController {
         createdAt: transaction.createdAt
       })
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erreur lors de la vérification du paiement:', error)
       return error(res, 'Erreur lors de la vérification du paiement')
     }
@@ -214,7 +214,7 @@ export class PaymentController {
 
       return success(res, stats)
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erreur lors de la récupération des statistiques:', error)
       return error(res, 'Erreur lors de la récupération des statistiques')
     }

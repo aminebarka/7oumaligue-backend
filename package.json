@@ -53,6 +53,7 @@
     "@types/sharp": "^0.31.1",
     "@types/stripe": "^8.0.416",
     "bcryptjs": "^2.4.3",
+    "canvas": "^3.1.2",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "dotenv": "^16.3.1",

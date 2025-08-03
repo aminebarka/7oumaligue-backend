@@ -7,7 +7,7 @@ const router = Router()
 const prisma = new PrismaClient()
 
 // Route pour obtenir les suggestions AI de tournoi
-router.post('/tournaments/ai/suggestions', authMiddleware, async (req, res) => {
+router.post('/tournaments/ai/suggestions', authenticateToken, async (req, res) => {
   try {
     const {
       numberOfTeams,
@@ -49,15 +49,15 @@ router.post('/tournaments/ai/suggestions', authMiddleware, async (req, res) => {
       }
     ]
 
-    return ApiResponse.success(res, suggestions)
+    return success(res, suggestions)
   } catch (error) {
     console.error('Erreur lors de la génération des suggestions:', error)
-    return ApiResponse.error(res, 'Erreur lors de la génération des suggestions')
+    return badRequest(res, 'Erreur lors de la génération des suggestions')
   }
 })
 
 // Route pour obtenir une recommandation personnalisée
-router.post('/tournaments/ai/personalized', authMiddleware, async (req, res) => {
+router.post('/tournaments/ai/personalized', authenticateToken, async (req, res) => {
   try {
     const { userId, preferences } = req.body
 
@@ -77,15 +77,15 @@ router.post('/tournaments/ai/personalized', authMiddleware, async (req, res) => 
       isRecommended: true
     }
 
-    return ApiResponse.success(res, recommendation)
+    return success(res, recommendation)
   } catch (error) {
     console.error('Erreur lors de la génération de la recommandation:', error)
-    return ApiResponse.error(res, 'Erreur lors de la génération de la recommandation')
+    return badRequest(res, 'Erreur lors de la génération de la recommandation')
   }
 })
 
 // Route pour créer un post social
-router.post('/social/posts', authMiddleware, async (req, res) => {
+router.post('/social/posts', authenticateToken, async (req, res) => {
   try {
     const {
       content,
@@ -104,14 +104,14 @@ router.post('/social/posts', authMiddleware, async (req, res) => {
         tournamentId: tournamentId ? String(tournamentId) : null,
         matchId: matchId ? String(matchId) : null,
         isPublic,
-        playerId: req.user?.userId || 0
+        playerId: req.user?.userId ? String(req.user.userId) : null
       }
     })
 
-    return ApiResponse.success(res, post, 'Post créé avec succès')
+    return success(res, post, 'Post créé avec succès')
   } catch (error) {
     console.error('Erreur lors de la création du post:', error)
-    return ApiResponse.error(res, 'Erreur lors de la création du post')
+    return badRequest(res, 'Erreur lors de la création du post')
   }
 })
 
@@ -148,114 +148,114 @@ router.get('/social/posts', async (req, res) => {
       orderBy: {
         createdAt: 'desc'
       },
-      skip: (String(page as string) - 1) * String(limit as string),
-      take: String(limit as string)
+      skip: (parseInt(page as string) - 1) * parseInt(limit as string),
+      take: parseInt(limit as string)
     })
 
     const total = await prisma.socialPost.count({ where: whereClause })
 
-    return ApiResponse.success(res, {
+    return success(res, {
       posts,
       pagination: {
-        page: String(page as string),
-        limit: String(limit as string),
+        page: parseInt(page as string),
+        limit: parseInt(limit as string),
         total,
-        pages: Math.ceil(total / String(limit as string))
+        pages: Math.ceil(total / parseInt(limit as string))
       }
     })
   } catch (error) {
     console.error('Erreur lors de la récupération des posts:', error)
-    return ApiResponse.error(res, 'Erreur lors de la récupération des posts')
+    return badRequest(res, 'Erreur lors de la récupération des posts')
   }
 })
 
 // Route pour liker/unliker un post
-router.post('/social/posts/:id/like', authMiddleware, async (req, res) => {
+router.post('/social/posts/:id/like', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params
 
     const post = await prisma.socialPost.findUnique({
-      where: { id: String(id) }
+      where: { id: parseInt(id) }
     })
 
     if (!post) {
-      return ApiResponse.error(res, 'Post non trouvé', 404)
+      return notFound(res, 'Post non trouvé')
     }
 
     // Simuler un like (dans une vraie implémentation, on aurait une table likes)
     await prisma.socialPost.update({
-      where: { id: String(id) },
+      where: { id: parseInt(id) },
       data: {
         likes: post.likes + 1
       }
     })
 
-    return ApiResponse.success(res, { message: 'Post liké' })
+    return success(res, { message: 'Post liké' })
   } catch (error) {
     console.error('Erreur lors du like:', error)
-    return ApiResponse.error(res, 'Erreur lors du like')
+    return badRequest(res, 'Erreur lors du like')
   }
 })
 
 // Route pour commenter un post
-router.post('/social/posts/:id/comment', authMiddleware, async (req, res) => {
+router.post('/social/posts/:id/comment', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params
     const { comment } = req.body
 
     const post = await prisma.socialPost.findUnique({
-      where: { id: String(id) }
+      where: { id: parseInt(id) }
     })
 
     if (!post) {
-      return ApiResponse.error(res, 'Post non trouvé', 404)
+      return notFound(res, 'Post non trouvé')
     }
 
     // Simuler un commentaire
     await prisma.socialPost.update({
-      where: { id: String(id) },
+      where: { id: parseInt(id) },
       data: {
         comments: post.comments + 1
       }
     })
 
-    return ApiResponse.success(res, { message: 'Commentaire ajouté' })
+    return success(res, { message: 'Commentaire ajouté' })
   } catch (error) {
     console.error('Erreur lors du commentaire:', error)
-    return ApiResponse.error(res, 'Erreur lors du commentaire')
+    return badRequest(res, 'Erreur lors du commentaire')
   }
 })
 
 // Route pour partager un post
-router.post('/social/posts/:id/share', authMiddleware, async (req, res) => {
+router.post('/social/posts/:id/share', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params
 
     const post = await prisma.socialPost.findUnique({
-      where: { id: String(id) }
+      where: { id: parseInt(id) }
     })
 
     if (!post) {
-      return ApiResponse.error(res, 'Post non trouvé', 404)
+      return notFound(res, 'Post non trouvé')
     }
 
     // Simuler un partage
     await prisma.socialPost.update({
-      where: { id: String(id) },
+      where: { id: parseInt(id) },
       data: {
         shares: post.shares + 1
       }
     })
 
-    return ApiResponse.success(res, { message: 'Post partagé' })
+    return success(res, { message: 'Post partagé' })
   } catch (error) {
     console.error('Erreur lors du partage:', error)
-    return ApiResponse.error(res, 'Erreur lors du partage')
+    return badRequest(res, 'Erreur lors du partage')
   }
 })
 
 // Route pour créer un paiement
-router.post('/payments/create', authMiddleware, async (req, res) => {
+router.post('/payments/create', authenticateToken, async (req, res) => {
   try {
     const {
       amount,
@@ -280,15 +280,15 @@ router.post('/payments/create', authMiddleware, async (req, res) => {
       }
     })
 
-    return ApiResponse.success(res, transaction, 'Paiement créé avec succès')
+    return success(res, transaction, 'Paiement créé avec succès')
   } catch (error) {
     console.error('Erreur lors de la création du paiement:', error)
-    return ApiResponse.error(res, 'Erreur lors de la création du paiement')
+    return badRequest(res, 'Erreur lors de la création du paiement')
   }
 })
 
 // Route pour obtenir les transactions de paiement
-router.get('/payments/transactions', authMiddleware, async (req, res) => {
+router.get('/payments/transactions', authenticateToken, async (req, res) => {
   try {
     const { page = 1, limit = 20, status } = req.query
 
@@ -308,29 +308,29 @@ router.get('/payments/transactions', authMiddleware, async (req, res) => {
       orderBy: {
         createdAt: 'desc'
       },
-      skip: (String(page as string) - 1) * String(limit as string),
-      take: String(limit as string)
+      skip: (parseInt(page as string) - 1) * parseInt(limit as string),
+      take: parseInt(limit as string)
     })
 
     const total = await prisma.paymentTransaction.count({ where: whereClause })
 
-    return ApiResponse.success(res, {
+    return success(res, {
       transactions,
       pagination: {
-        page: String(page as string),
-        limit: String(limit as string),
+        page: parseInt(page as string),
+        limit: parseInt(limit as string),
         total,
-        pages: Math.ceil(total / String(limit as string))
+        pages: Math.ceil(total / parseInt(limit as string))
       }
     })
   } catch (error) {
     console.error('Erreur lors de la récupération des transactions:', error)
-    return ApiResponse.error(res, 'Erreur lors de la récupération des transactions')
+    return badRequest(res, 'Erreur lors de la récupération des transactions')
   }
 })
 
 // Route pour obtenir les statistiques de paiement
-router.get('/payments/stats', authMiddleware, async (req, res) => {
+router.get('/payments/stats', authenticateToken, async (req, res) => {
   try {
     const totalTransactions = await prisma.paymentTransaction.count()
     const totalAmount = await prisma.paymentTransaction.aggregate({
@@ -345,7 +345,7 @@ router.get('/payments/stats', authMiddleware, async (req, res) => {
       where: { status: 'completed' }
     })
 
-    return ApiResponse.success(res, {
+    return success(res, {
       totalTransactions,
       totalAmount: totalAmount._sum.amount || 0,
       pendingTransactions,
@@ -353,7 +353,7 @@ router.get('/payments/stats', authMiddleware, async (req, res) => {
     })
   } catch (error) {
     console.error('Erreur lors de la récupération des statistiques:', error)
-    return ApiResponse.error(res, 'Erreur lors de la récupération des statistiques')
+    return badRequest(res, 'Erreur lors de la récupération des statistiques')
   }
 })
 
@@ -372,10 +372,10 @@ router.get('/players/:id/stats', async (req, res) => {
       }
     })
 
-    return ApiResponse.success(res, stats)
+    return success(res, stats)
   } catch (error) {
     console.error('Erreur lors de la récupération des statistiques:', error)
-    return ApiResponse.error(res, 'Erreur lors de la récupération des statistiques')
+    return badRequest(res, 'Erreur lors de la récupération des statistiques')
   }
 })
 
@@ -394,10 +394,10 @@ router.get('/players/:id/badges', async (req, res) => {
       }
     })
 
-    return ApiResponse.success(res, badges)
+    return success(res, badges)
   } catch (error) {
     console.error('Erreur lors de la récupération des badges:', error)
-    return ApiResponse.error(res, 'Erreur lors de la récupération des badges')
+    return badRequest(res, 'Erreur lors de la récupération des badges')
   }
 })
 
@@ -407,7 +407,7 @@ router.get('/stadia/:id', async (req, res) => {
     const { id } = req.params
 
     const stadium = await prisma.stadium.findUnique({
-      where: { id: String(id) },
+      where: { id: parseInt(id) },
       include: {
         tournaments: {
           include: {
@@ -418,13 +418,13 @@ router.get('/stadia/:id', async (req, res) => {
     })
 
     if (!stadium) {
-      return ApiResponse.error(res, 'Stade non trouvé', 404)
+      return notFound(res, 'Stade non trouvé')
     }
 
-    return ApiResponse.success(res, stadium)
+    return success(res, stadium)
   } catch (error) {
     console.error('Erreur lors de la récupération du stade:', error)
-    return ApiResponse.error(res, 'Erreur lors de la récupération du stade')
+    return badRequest(res, 'Erreur lors de la récupération du stade')
   }
 })
 
@@ -445,10 +445,10 @@ router.get('/matches/current', async (req, res) => {
       }
     })
 
-    return ApiResponse.success(res, currentMatch)
+    return success(res, currentMatch)
   } catch (error) {
     console.error('Erreur lors de la récupération du match en cours:', error)
-    return ApiResponse.error(res, 'Erreur lors de la récupération du match en cours')
+    return badRequest(res, 'Erreur lors de la récupération du match en cours')
   }
 })
 
@@ -472,13 +472,13 @@ router.get('/matches/next', async (req, res) => {
       orderBy: {
         date: 'asc'
       },
-      take: String(limit as string)
+      take: parseInt(limit as string)
     })
 
-    return ApiResponse.success(res, upcomingMatches)
+    return success(res, upcomingMatches)
   } catch (error) {
     console.error('Erreur lors de la récupération des prochains matchs:', error)
-    return ApiResponse.error(res, 'Erreur lors de la récupération des prochains matchs')
+    return badRequest(res, 'Erreur lors de la récupération des prochains matchs')
   }
 })
 
@@ -509,10 +509,10 @@ router.get('/matches/all', async (req, res) => {
       }
     })
 
-    return ApiResponse.success(res, matches)
+    return success(res, matches)
   } catch (error) {
     console.error('Erreur lors de la récupération des matchs:', error)
-    return ApiResponse.error(res, 'Erreur lors de la récupération des matchs')
+    return badRequest(res, 'Erreur lors de la récupération des matchs')
   }
 })
 

@@ -160,7 +160,7 @@ async function fixMigrationIssues() {
               time: '14:00',
               venue: 'Stade Principal',
               homeTeam: teams[0].id,
-              awayTeam: teams[1].id,
+
               homeScore: 1,
               status: 'completed',
               tournamentId: tournaments[0].id
@@ -172,7 +172,7 @@ async function fixMigrationIssues() {
               time: '16:00',
               venue: 'Stade Principal',
               homeTeam: teams[1].id,
-              awayTeam: teams[0].id,
+
               status: 'scheduled',
               tournamentId: tournaments[0].id
             }
@@ -201,7 +201,7 @@ async function fixMigrationIssues() {
               likes: 24,
               comments: 8,
               shares: 3,
-              playerId: users[0].id,
+              playerId: String(users[0].id),
               tournamentId: tournaments[0].id,
               isPublic: true
             }
@@ -214,7 +214,7 @@ async function fixMigrationIssues() {
               likes: 15,
               comments: 5,
               shares: 2,
-              playerId: users[0].id,
+              playerId: String(users[0].id),
               tournamentId: tournaments[0].id,
               isPublic: true
             }

@@ -13,7 +13,11 @@ router.get('/tournaments/:id/tv-feed', async (req, res) => {
     const tournament = await prisma.tournament.findUnique({
       where: { id: String(id) },
       include: {
-        teams: true,
+        tournamentTeams: {
+          include: {
+            team: true
+          }
+        },
         matches: {
           include: {
             homeTeamRef: true
@@ -26,7 +30,7 @@ router.get('/tournaments/:id/tv-feed', async (req, res) => {
     })
 
     if (!tournament) {
-      return ApiResponse.error(res, 'Tournoi non trouvé', 404)
+      return notFound(res, 'Tournoi non trouvé')
     }
 
     // Obtenir le match en cours
@@ -62,10 +66,10 @@ router.get('/tournaments/:id/tv-feed', async (req, res) => {
     const tvHtml = generateTVHTML(tournament, currentMatch, upcomingMatches)
 
     res.setHeader('Content-Type', 'text/html')
-    res.send(tvHtml)
+    return res.send(tvHtml)
   } catch (error) {
     console.error('Erreur lors de la génération du flux TV:', error)
-    return ApiResponse.error(res, 'Erreur lors de la génération du flux TV')
+    return badRequest(res, 'Erreur lors de la génération du flux TV')
   }
 })
 
@@ -76,12 +80,16 @@ router.get('/tournaments/:id/tv-data', async (req, res) => {
     const tournament = await prisma.tournament.findUnique({
       where: { id: String(id) },
       include: {
-        teams: true
+        tournamentTeams: {
+          include: {
+            team: true
+          }
+        }
       }
     })
 
     if (!tournament) {
-      return ApiResponse.error(res, 'Tournoi non trouvé', 404)
+      return notFound(res, 'Tournoi non trouvé')
     }
 
     const currentMatch = await prisma.match.findFirst({
@@ -111,7 +119,7 @@ router.get('/tournaments/:id/tv-data', async (req, res) => {
       take: 5
     })
 
-    return ApiResponse.success(res, {
+    return success(res, {
       tournament,
       currentMatch,
       upcomingMatches,
@@ -119,7 +127,7 @@ router.get('/tournaments/:id/tv-data', async (req, res) => {
     })
   } catch (error) {
     console.error('Erreur lors de la récupération des données TV:', error)
-    return ApiResponse.error(res, 'Erreur lors de la récupération des données TV')
+    return badRequest(res, 'Erreur lors de la récupération des données TV')
   }
 })
 

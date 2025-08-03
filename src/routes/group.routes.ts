@@ -1,6 +1,7 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticateToken } from '../middleware/auth.middleware';
+import { success, created, badRequest, notFound } from '../utils/apiResponse';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -56,10 +57,7 @@ router.post('/', authenticateToken, async (req, res) => {
     const { name, tournamentId } = req.body;
     
     if (!name || !tournamentId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Nom et ID du tournoi requis'
-      });
+      return badRequest(res, 'Nom et ID du tournoi requis');
     }
     
     // Vérifier que le tournoi existe
@@ -68,10 +66,7 @@ router.post('/', authenticateToken, async (req, res) => {
     });
     
     if (!tournament) {
-      return res.status(404).json({
-        success: false,
-        message: 'Tournoi non trouvé'
-      });
+      return notFound(res, 'Tournoi non trouvé');
     }
     
     const group = await prisma.group.create({
@@ -88,16 +83,10 @@ router.post('/', authenticateToken, async (req, res) => {
       }
     });
     
-    res.status(201).json({
-      success: true,
-      data: group
-    });
+    return created(res, group, 'Groupe créé avec succès');
   } catch (error) {
     console.error('Erreur lors de la création du groupe:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Erreur lors de la création du groupe'
-    });
+    return badRequest(res, 'Erreur lors de la création du groupe');
   }
 });
 
@@ -108,10 +97,7 @@ router.patch('/:id', authenticateToken, async (req, res) => {
     const { name } = req.body;
     
     if (!name) {
-      return res.status(400).json({
-        success: false,
-        message: 'Nom du groupe requis'
-      });
+      return badRequest(res, 'Nom du groupe requis');
     }
     
     const group = await prisma.group.update({
@@ -126,16 +112,10 @@ router.patch('/:id', authenticateToken, async (req, res) => {
       }
     });
     
-    res.json({
-      success: true,
-      data: group
-    });
+    return success(res, group, 'Groupe modifié avec succès');
   } catch (error) {
     console.error('Erreur lors de la modification du groupe:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Erreur lors de la modification du groupe'
-    });
+    return badRequest(res, 'Erreur lors de la modification du groupe');
   }
 });
 
@@ -194,10 +174,7 @@ router.post('/:id/teams', authenticateToken, async (req, res) => {
     
     if (!group) {
       console.log('❌ Groupe non trouvé:', id);
-      return res.status(404).json({
-        success: false,
-        message: 'Groupe non trouvé'
-      });
+      return notFound(res, 'Groupe non trouvé');
     }
     
     // Vérifier que l'équipe existe
@@ -207,10 +184,7 @@ router.post('/:id/teams', authenticateToken, async (req, res) => {
     
     if (!team) {
       console.log('❌ Équipe non trouvée:', teamId);
-      return res.status(404).json({
-        success: false,
-        message: 'Équipe non trouvée'
-      });
+      return notFound(res, 'Équipe non trouvée');
     }
     
     // Vérifier que l'équipe n'est pas déjà dans un groupe du même tournoi
@@ -225,10 +199,7 @@ router.post('/:id/teams', authenticateToken, async (req, res) => {
     
     if (existingGroupTeam) {
       console.log('❌ Équipe déjà dans un groupe:', teamId);
-      return res.status(400).json({
-        success: false,
-        message: 'Cette équipe est déjà dans un groupe de ce tournoi'
-      });
+      return badRequest(res, 'Cette équipe est déjà dans un groupe de ce tournoi');
     }
     
     console.log('✅ Création du GroupTeam:', { groupId: id, teamId });
@@ -246,16 +217,10 @@ router.post('/:id/teams', authenticateToken, async (req, res) => {
     
     console.log('✅ GroupTeam créé avec succès:', groupTeam.id);
     
-    res.status(201).json({
-      success: true,
-      data: groupTeam
-    });
+    return created(res, groupTeam, 'Équipe ajoutée au groupe avec succès');
   } catch (error) {
     console.error('❌ Erreur lors de l\'ajout de l\'équipe au groupe:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Erreur lors de l\'ajout de l\'équipe au groupe: ' + error.message
-    });
+    return badRequest(res, 'Erreur lors de l\'ajout de l\'équipe au groupe');
   }
 });
 
@@ -273,10 +238,7 @@ router.delete('/:id/teams/:teamId', authenticateToken, async (req, res) => {
     
     if (!group) {
       console.log('❌ Groupe non trouvé:', id);
-      return res.status(404).json({
-        success: false,
-        message: 'Groupe non trouvé'
-      });
+      return notFound(res, 'Groupe non trouvé');
     }
     
     // Vérifier que l'équipe existe dans ce groupe
@@ -289,10 +251,7 @@ router.delete('/:id/teams/:teamId', authenticateToken, async (req, res) => {
     
     if (!existingGroupTeam) {
       console.log('❌ Équipe non trouvée dans ce groupe:', { groupId: id, teamId });
-      return res.status(404).json({
-        success: false,
-        message: 'Équipe non trouvée dans ce groupe'
-      });
+      return notFound(res, 'Équipe non trouvée dans ce groupe');
     }
     
     console.log('✅ Suppression des matchs de l\'équipe dans ce groupe');
@@ -302,8 +261,8 @@ router.delete('/:id/teams/:teamId', authenticateToken, async (req, res) => {
       where: {
         groupId: id,
         OR: [
-          { homeTeam: teamId },
-          { awayTeam: teamId }
+          { homeTeamId: teamId },
+          { awayTeamId: teamId }
         ]
       }
     });
@@ -320,16 +279,10 @@ router.delete('/:id/teams/:teamId', authenticateToken, async (req, res) => {
     
     console.log('✅ Équipe retirée avec succès');
     
-    res.json({
-      success: true,
-      message: 'Équipe retirée du groupe avec succès'
-    });
+    return success(res, { message: 'Équipe retirée du groupe avec succès' });
   } catch (error) {
     console.error('❌ Erreur lors du retrait de l\'équipe du groupe:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Erreur lors du retrait de l\'équipe du groupe: ' + error.message
-    });
+    return badRequest(res, 'Erreur lors du retrait de l\'équipe du groupe');
   }
 });
 

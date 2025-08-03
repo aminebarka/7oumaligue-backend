@@ -96,10 +96,7 @@ async function seedAdvancedData() {
           tournamentId: '1',
           goals: 5,
           assists: 3,
-          yellowCards: 1,
-          redCards: 0,
           matchesPlayed: 4,
-          minutesPlayed: 320,
           rating: 4.2
         },
         {
@@ -107,10 +104,7 @@ async function seedAdvancedData() {
           tournamentId: '1',
           goals: 3,
           assists: 5,
-          yellowCards: 0,
-          redCards: 0,
           matchesPlayed: 4,
-          minutesPlayed: 360,
           rating: 4.5
         },
         {
@@ -118,10 +112,7 @@ async function seedAdvancedData() {
           tournamentId: '1',
           goals: 2,
           assists: 1,
-          yellowCards: 2,
-          redCards: 0,
           matchesPlayed: 3,
-          minutesPlayed: 270,
           rating: 3.8
         }
       ]
@@ -133,7 +124,7 @@ async function seedAdvancedData() {
       data: [
         {
           playerId: '1',
-          badgeType: 'MVP',
+
           badgeName: 'Joueur du Match',
           description: 'Meilleur joueur du match',
           icon: '🏆',
@@ -141,7 +132,7 @@ async function seedAdvancedData() {
         },
         {
           playerId: '2',
-          badgeType: 'TopScorer',
+
           badgeName: 'Meilleur Buteur',
           description: 'Plus de buts marqués',
           icon: '⚽',
@@ -149,7 +140,7 @@ async function seedAdvancedData() {
         },
         {
           playerId: '3',
-          badgeType: 'FairPlay',
+
           badgeName: 'Fair Play',
           description: 'Esprit sportif exemplaire',
           icon: '🤝',
@@ -166,48 +157,49 @@ async function seedAdvancedData() {
           name: 'Stade Municipal de Tunis',
           address: '123 Avenue Habib Bourguiba',
           city: 'Tunis',
-          phone: '+216 71 123 456',
-          email: 'contact@stade-tunis.tn',
-          website: 'https://stade-tunis.tn',
-          logo: 'https://via.placeholder.com/200x200/4ECDC4/FFFFFF?text=ST',
-          photos: [
-            'https://via.placeholder.com/800x600/4ECDC4/FFFFFF?text=Stade+Tunis+1',
-            'https://via.placeholder.com/800x600/45B7D1/FFFFFF?text=Stade+Tunis+2'
-          ],
+          region: 'Tunis',
+          capacity: 10000,
+          fieldCount: 2,
+          fieldTypes: ['11v11', '7v7'],
+          amenities: ['parking', 'shower', 'cafe'],
+          images: [],
+          contactInfo: { phone: '+216 71 123 456', email: 'contact@stade-tunis.tn', website: 'https://stade-tunis.tn' },
+          pricing: { hourly: 100, daily: 800 },
           description: 'Stade principal de la ville de Tunis avec des installations modernes',
-          facilities: ['Terrain synthétique', 'Vestiaires', 'Parking', 'Cafétéria'],
           isPartner: true,
-          partnerLevel: 'Gold'
+          ownerId: 1
         },
         {
           name: 'Complexe Sportif Sfax',
           address: '456 Rue de la République',
           city: 'Sfax',
-          phone: '+216 74 789 012',
-          email: 'info@complexe-sfax.tn',
-          website: 'https://complexe-sfax.tn',
-          logo: 'https://via.placeholder.com/200x200/FF6B6B/FFFFFF?text=CS',
-          photos: [
-            'https://via.placeholder.com/800x600/FF6B6B/FFFFFF?text=Complexe+Sfax+1'
-          ],
+          region: 'Sfax',
+          capacity: 5000,
+          fieldCount: 3,
+          fieldTypes: ['5v5', '7v7'],
+          amenities: ['parking', 'cafe'],
+          images: [],
+          contactInfo: { phone: '+216 74 789 012', email: 'info@complexe-sfax.tn', website: 'https://complexe-sfax.tn' },
+          pricing: { hourly: 80, daily: 600 },
           description: 'Complexe sportif moderne avec plusieurs terrains',
-          facilities: ['2 Terrains synthétiques', 'Salle de musculation', 'Piscine'],
           isPartner: true,
-          partnerLevel: 'Silver'
+          ownerId: 1
         },
         {
-          name: 'Terrain Municipal Sousse',
+          name: 'Terrain de Proximité Sousse',
           address: '789 Boulevard de la Corniche',
           city: 'Sousse',
-          phone: '+216 73 345 678',
-          email: 'contact@terrain-sousse.tn',
-          logo: 'https://via.placeholder.com/200x200/96CEB4/FFFFFF?text=TS',
-          photos: [
-            'https://via.placeholder.com/800x600/96CEB4/FFFFFF?text=Terrain+Sousse+1'
-          ],
-          description: 'Terrain municipal bien entretenu',
-          facilities: ['Terrain naturel', 'Éclairage', 'Parking'],
-          isPartner: false
+          region: 'Sousse',
+          capacity: 2000,
+          fieldCount: 1,
+          fieldTypes: ['5v5'],
+          amenities: ['parking'],
+          images: [],
+          contactInfo: { phone: '+216 73 345 678', email: 'contact@terrain-sousse.tn' },
+          pricing: { hourly: 50, daily: 400 },
+          description: 'Petit terrain de football pour matchs amicaux',
+          isPartner: false,
+          ownerId: 1
         }
       ]
     })
