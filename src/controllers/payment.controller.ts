@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { PrismaClient } from '@prisma/client'
-import { ApiResponse } from '../utils/apiResponse'
+import { success, error, badRequest, notFound } from '../utils/apiResponse'
 
 const prisma = new PrismaClient()
 
@@ -33,7 +33,7 @@ export class PaymentController {
       })
 
       if (!tournament) {
-        return ApiResponse.error(res, 'Tournoi non trouvé', 404)
+        return notFound(res, 'Tournoi non trouvé')
       }
 
       // Vérifier que l'équipe existe
@@ -42,7 +42,7 @@ export class PaymentController {
       })
 
       if (!team) {
-        return ApiResponse.error(res, 'Équipe non trouvée', 404)
+        return notFound(res, 'Équipe non trouvée')
       }
 
       // Calculer les frais de commission (5% pour 7ouma Ligue)
@@ -88,18 +88,17 @@ export class PaymentController {
           break
       }
 
-      return ApiResponse.success(res, {
+      return success(res, {
         transactionId: transaction.transactionId,
         paymentUrl,
         amount,
         commission,
-        netAmount,
-        message: 'Demande de paiement créée avec succès'
-      })
+        netAmount
+      }, 'Demande de paiement créée avec succès')
 
     } catch (error) {
       console.error('Erreur lors de la création du paiement:', error)
-      return ApiResponse.error(res, 'Erreur lors de la création du paiement')
+      return error(res, 'Erreur lors de la création du paiement')
     }
   }
 
@@ -117,10 +116,10 @@ export class PaymentController {
       })
 
       if (!transaction) {
-        return ApiResponse.error(res, 'Transaction non trouvée', 404)
+        return notFound(res, 'Transaction non trouvée')
       }
 
-      return ApiResponse.success(res, {
+      return success(res, {
         transactionId: transaction.transactionId,
         status: transaction.status,
         amount: transaction.amount,
@@ -132,7 +131,7 @@ export class PaymentController {
 
     } catch (error) {
       console.error('Erreur lors de la vérification du paiement:', error)
-      return ApiResponse.error(res, 'Erreur lors de la vérification du paiement')
+      return error(res, 'Erreur lors de la vérification du paiement')
     }
   }
 
@@ -213,11 +212,11 @@ export class PaymentController {
         monthlyStats: this.getMonthlyStats(transactions)
       }
 
-      return ApiResponse.success(res, stats)
+      return success(res, stats)
 
     } catch (error) {
       console.error('Erreur lors de la récupération des statistiques:', error)
-      return ApiResponse.error(res, 'Erreur lors de la récupération des statistiques')
+      return error(res, 'Erreur lors de la récupération des statistiques')
     }
   }
 

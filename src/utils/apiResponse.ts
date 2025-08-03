@@ -23,3 +23,7 @@ export const success = (res: Response, data: any, message?: string) => {
 export const notFound = (res: Response, message: string) => {
   return res.status(404).json({ success: false, message });
 };
+
+export const error = (res: Response, message: string, statusCode: number = 500) => {
+  return res.status(statusCode).json({ success: false, message });
+};

@@ -238,10 +238,17 @@ model Subscription {
 // Modèles pour les fonctionnalités avancées
 model PaymentTransaction {
   id            Int      @id @default(autoincrement())
+  transactionId String   @unique @default(cuid())
   amount        Float
   currency      String   @default("MAD")
   status        String   @default("pending")
   paymentMethod String
+  commission    Float    @default(0)
+  netAmount     Float    @default(0)
+  playerCount   Int      @default(0)
+  organizerId   Int?
+  paymentData   Json?
+  completedAt   DateTime?
   tournamentId  String?
   teamId        String?
   playerId      String?
