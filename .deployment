@@ -1,2 +1,2 @@
 [config]
-command = bash startup.sh 
+command = node start-server.js 
