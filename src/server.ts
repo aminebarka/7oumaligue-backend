@@ -3,6 +3,7 @@ import cors from "cors"
 import helmet from "helmet"
 import rateLimit from "express-rate-limit"
 import dotenv from "dotenv"
+import os from "os"
 import { logger } from "./utils/logger"
 import { errorHandler } from "./middleware/error.middleware"
 import { corsMiddleware } from "./middleware/cors.middleware"
@@ -201,13 +202,27 @@ const startServer = async () => {
     // Connect to database first
     await connectDatabase()
     
+    // Determine host based on environment
+    const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost'
+    const port = Number(PORT)
+    
     // Start the server
-    console.log('🎯 DEBUG - About to start server on port:', PORT)
-    app.listen(PORT, () => {
-      console.log('✅ DEBUG - Server successfully started on port:', PORT)
-      logger.info(`🚀 Server running on port ${PORT}`)
+    console.log('🎯 DEBUG - About to start server on', host + ':' + port)
+    app.listen(port, host, () => {
+      console.log(`✅ Server running on ${host}:${port}`)
+      logger.info(`🚀 Server running on ${host}:${port}`)
       logger.info(`📊 Environment: ${process.env.NODE_ENV || "development"}`)
       logger.info(`🌐 CORS enabled for: ${process.env.FRONTEND_URL || "http://localhost:5173"}`)
+      
+      // Debug réseau - affiche toutes les interfaces
+      console.log(`🖥️  Network interfaces:`)
+      Object.entries(os.networkInterfaces()).forEach(([name, interfaces]) => {
+        interfaces?.forEach(info => {
+          if (info.family === 'IPv4') {
+            console.log(`  - ${name}: ${info.address} (${info.family})`)
+          }
+        })
+      })
     })
   } catch (error) {
     logger.error("❌ Failed to start server:", error)
