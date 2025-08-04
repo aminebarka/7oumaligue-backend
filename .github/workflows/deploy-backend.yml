@@ -1,0 +1,58 @@
+name: Deploy Backend to Azure App Service
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: backend/package-lock.json
+    
+    - name: Install dependencies
+      run: |
+        cd backend
+        npm ci
+    
+    - name: Build the application
+      run: |
+        cd backend
+        npm run build
+        npm run check-build
+    
+    - name: Verify deployment configuration
+      run: |
+        cd backend
+        npm run verify-deployment
+    
+    - name: Deploy to Azure App Service
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: '7oumaligue-backend'
+        package: backend/
+        startup-command: 'bash startup.sh'
+      env:
+        AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+    
+    - name: Health check
+      run: |
+        echo "Waiting for deployment to complete..."
+        sleep 30
+        curl -f https://7oumaligue-backend.azurewebsites.net/health || echo "Health check failed - app may still be starting" 

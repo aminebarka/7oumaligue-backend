@@ -1,0 +1,88 @@
+name: Manual Deploy Backend to Azure
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+      force_rebuild:
+        description: 'Force rebuild all dependencies'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  manual-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: backend/package-lock.json
+    
+    - name: Install dependencies
+      run: |
+        cd backend
+        if [ "${{ github.event.inputs.force_rebuild }}" = "true" ]; then
+          rm -rf node_modules package-lock.json
+          npm install
+        else
+          npm ci
+        fi
+    
+    - name: Build the application
+      run: |
+        cd backend
+        npm run build
+        npm run check-build
+        echo "✅ Build completed successfully"
+    
+    - name: Verify deployment configuration
+      run: |
+        cd backend
+        npm run verify-deployment
+        echo "✅ Deployment configuration verified"
+    
+    - name: Deploy to Azure App Service
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: '7oumaligue-backend'
+        package: backend/
+        startup-command: 'bash startup.sh'
+      env:
+        AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+    
+    - name: Wait for deployment
+      run: |
+        echo "⏳ Waiting for deployment to complete..."
+        sleep 45
+    
+    - name: Health check
+      run: |
+        echo "🏥 Performing health check..."
+        response=$(curl -s -o /dev/null -w "%{http_code}" https://7oumaligue-backend.azurewebsites.net/health)
+        if [ "$response" = "200" ]; then
+          echo "✅ Health check passed - App is running"
+        else
+          echo "⚠️ Health check returned status $response"
+          echo "App may still be starting up..."
+        fi
+    
+    - name: Deployment summary
+      run: |
+        echo "🎉 Deployment completed!"
+        echo "Environment: ${{ github.event.inputs.environment }}"
+        echo "App URL: https://7oumaligue-backend.azurewebsites.net"
+        echo "Health check: https://7oumaligue-backend.azurewebsites.net/health" 
