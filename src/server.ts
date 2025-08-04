@@ -21,8 +21,14 @@ const stadiumRoutes = require('./routes/stadium.routes').default;
 // Load environment variables
 dotenv.config()
 
+// Debug: Log the PORT value
+console.log('🔍 DEBUG - process.env.PORT:', process.env.PORT)
+console.log('🔍 DEBUG - NODE_ENV:', process.env.NODE_ENV)
+
 const app = express()
 const PORT = process.env.PORT || 8080
+
+console.log('🚀 DEBUG - Final PORT value:', PORT)
 
 // CORS middleware personnalisé - DOIT être en premier
 app.use(corsMiddleware)
@@ -196,7 +202,9 @@ const startServer = async () => {
     await connectDatabase()
     
     // Start the server
+    console.log('🎯 DEBUG - About to start server on port:', PORT)
     app.listen(PORT, () => {
+      console.log('✅ DEBUG - Server successfully started on port:', PORT)
       logger.info(`🚀 Server running on port ${PORT}`)
       logger.info(`📊 Environment: ${process.env.NODE_ENV || "development"}`)
       logger.info(`🌐 CORS enabled for: ${process.env.FRONTEND_URL || "http://localhost:5173"}`)

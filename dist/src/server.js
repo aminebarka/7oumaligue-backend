@@ -21,8 +21,11 @@ const dataRoutes = require('./routes/data.routes').default;
 const liveMatchRoutes = require('./routes/liveMatch.routes').default;
 const stadiumRoutes = require('./routes/stadium.routes').default;
 dotenv_1.default.config();
+console.log('🔍 DEBUG - process.env.PORT:', process.env.PORT);
+console.log('🔍 DEBUG - NODE_ENV:', process.env.NODE_ENV);
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 8080;
+console.log('🚀 DEBUG - Final PORT value:', PORT);
 app.use(cors_middleware_1.corsMiddleware);
 app.use((0, cors_1.default)({
     origin: [
@@ -159,7 +162,9 @@ app.use(error_middleware_1.errorHandler);
 const startServer = async () => {
     try {
         await (0, database_1.connectDatabase)();
+        console.log('🎯 DEBUG - About to start server on port:', PORT);
         app.listen(PORT, () => {
+            console.log('✅ DEBUG - Server successfully started on port:', PORT);
             logger_1.logger.info(`🚀 Server running on port ${PORT}`);
             logger_1.logger.info(`📊 Environment: ${process.env.NODE_ENV || "development"}`);
             logger_1.logger.info(`🌐 CORS enabled for: ${process.env.FRONTEND_URL || "http://localhost:5173"}`);
