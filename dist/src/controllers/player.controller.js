@@ -84,9 +84,7 @@ exports.createPlayer = createPlayer;
 const getPlayers = async (req, res) => {
     try {
         const { teamId, position, available } = req.query;
-        const whereClause = {
-            tenantId: req.user?.tenantId,
-        };
+        const whereClause = {};
         if (teamId) {
             whereClause.teamId = teamId;
         }

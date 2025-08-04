@@ -13,7 +13,13 @@ const generateToken = (payload) => {
             throw new Error("JWT_SECRET is not defined in environment variables");
         }
         const expiresIn = process.env.JWT_EXPIRES_IN || "7d";
-        return jsonwebtoken_1.default.sign(payload, secret, { expiresIn });
+        const token = jsonwebtoken_1.default.sign({
+            userId: payload.userId,
+            email: payload.email,
+            role: payload.role,
+            tenantId: payload.tenantId
+        }, secret, { expiresIn });
+        return token;
     }
     catch (error) {
         logger_1.logger.error("Error generating JWT token:", error);

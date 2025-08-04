@@ -5,43 +5,69 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.changePassword = exports.updateProfile = exports.getProfile = exports.login = exports.register = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const database_1 = require("../config/database");
+const jwt_simple_1 = require("../config/jwt-simple");
 const apiResponse_1 = require("../utils/apiResponse");
 const express_1 = __importDefault(require("express"));
+const auth_middleware_1 = require("../middleware/auth.middleware");
 const router = express_1.default.Router();
+const validateRegistrationData = (data) => {
+    const errors = [];
+    if (!data.name || typeof data.name !== 'string' || data.name.trim().length < 2) {
+        errors.push("Le nom doit contenir au moins 2 caractères");
+    }
+    if (!data.email || typeof data.email !== 'string' || !data.email.includes('@')) {
+        errors.push("Email invalide");
+    }
+    if (!data.password || typeof data.password !== 'string' || data.password.length < 6) {
+        errors.push("Le mot de passe doit contenir au moins 6 caractères");
+    }
+    return errors;
+};
 const register = async (req, res) => {
-    const { name, email, password } = req.body;
+    console.log("🔍 Début de l'inscription avec les données:", req.body);
+    const validationErrors = validateRegistrationData(req.body);
+    if (validationErrors.length > 0) {
+        console.error("❌ Erreurs de validation:", validationErrors);
+        return (0, apiResponse_1.badRequest)(res, validationErrors.join(", "));
+    }
+    const { name, email, password, role = "player" } = req.body;
     try {
+        console.log("🔍 Vérification de l'existence de l'utilisateur...");
         const existingUser = await database_1.prisma.user.findUnique({
-            where: { email },
+            where: { email: email.toLowerCase() },
         });
         if (existingUser) {
+            console.error("❌ Utilisateur existe déjà:", email);
             return (0, apiResponse_1.badRequest)(res, "Un utilisateur avec cet email existe déjà");
         }
+        console.log("🔍 Hachage du mot de passe...");
         const saltRounds = 12;
         const hashedPassword = await bcryptjs_1.default.hash(password, saltRounds);
+        console.log("🔍 Création du tenant...");
         const tenant = await database_1.prisma.tenant.create({
             data: {
                 name: `${name}'s Organization`,
             },
         });
+        console.log("🔍 Création de l'utilisateur...");
         const user = await database_1.prisma.user.create({
             data: {
-                name,
-                email,
+                name: name.trim(),
+                email: email.toLowerCase(),
                 password: hashedPassword,
-                role: "admin",
+                role: role,
                 tenantId: tenant.id,
             },
         });
-        const jwtSecret = process.env.JWT_SECRET || "your-secret-key";
-        const token = jsonwebtoken_1.default.sign({
+        console.log("🔍 Génération du token JWT...");
+        const payload = {
             userId: user.id,
             email: user.email,
             role: user.role,
             tenantId: user.tenantId,
-        }, jwtSecret, { expiresIn: process.env.JWT_EXPIRES_IN || "7d" });
+        };
+        const token = (0, jwt_simple_1.generateToken)(payload);
         const userData = {
             id: user.id,
             name: user.name,
@@ -49,19 +75,28 @@ const register = async (req, res) => {
             role: user.role,
             tenantId: user.tenantId,
         };
+        console.log("✅ Inscription réussie pour:", email, "avec le rôle:", user.role);
         return (0, apiResponse_1.created)(res, { user: userData, token }, "Compte créé avec succès");
     }
     catch (error) {
-        console.error("Erreur lors de l'inscription:", error);
-        return (0, apiResponse_1.badRequest)(res, "Erreur lors de la création du compte");
+        console.error("❌ Erreur lors de l'inscription:", error);
+        console.error("❌ Détails de l'erreur:", {
+            message: error?.message,
+            code: error?.code,
+            meta: error?.meta
+        });
+        return (0, apiResponse_1.badRequest)(res, `Erreur lors de la création du compte: ${error?.message || 'Erreur inconnue'}`);
     }
 };
 exports.register = register;
 const login = async (req, res) => {
     const { email, password } = req.body;
+    if (!email || !password) {
+        return (0, apiResponse_1.badRequest)(res, "Email et mot de passe requis");
+    }
     try {
         const user = await database_1.prisma.user.findUnique({
-            where: { email },
+            where: { email: email.toLowerCase() },
             include: {
                 tenant: true,
             },
@@ -73,13 +108,13 @@ const login = async (req, res) => {
         if (!isPasswordValid) {
             return (0, apiResponse_1.unauthorized)(res, "Email ou mot de passe incorrect");
         }
-        const jwtSecret = process.env.JWT_SECRET || "your-secret-key";
-        const token = jsonwebtoken_1.default.sign({
+        const payload = {
             userId: user.id,
             email: user.email,
             role: user.role,
             tenantId: user.tenantId,
-        }, jwtSecret, { expiresIn: process.env.JWT_EXPIRES_IN || "7d" });
+        };
+        const token = (0, jwt_simple_1.generateToken)(payload);
         const userData = {
             id: user.id,
             name: user.name,
@@ -134,7 +169,7 @@ const updateProfile = async (req, res) => {
         if (email) {
             const existingUser = await database_1.prisma.user.findFirst({
                 where: {
-                    email,
+                    email: email.toLowerCase(),
                     NOT: { id: userId },
                 },
             });
@@ -145,8 +180,8 @@ const updateProfile = async (req, res) => {
         const updatedUser = await database_1.prisma.user.update({
             where: { id: userId },
             data: {
-                ...(name && { name }),
-                ...(email && { email }),
+                ...(name && { name: name.trim() }),
+                ...(email && { email: email.toLowerCase() }),
             },
             select: {
                 id: true,
@@ -172,6 +207,12 @@ const changePassword = async (req, res) => {
     try {
         if (!userId) {
             return (0, apiResponse_1.unauthorized)(res, "Token invalide");
+        }
+        if (!currentPassword || !newPassword) {
+            return (0, apiResponse_1.badRequest)(res, "Ancien et nouveau mot de passe requis");
+        }
+        if (newPassword.length < 6) {
+            return (0, apiResponse_1.badRequest)(res, "Le nouveau mot de passe doit contenir au moins 6 caractères");
         }
         const user = await database_1.prisma.user.findUnique({
             where: { id: userId },
@@ -202,5 +243,33 @@ router.post("/login", exports.login);
 router.get("/profile", exports.getProfile);
 router.put("/profile", exports.updateProfile);
 router.put("/change-password", exports.changePassword);
+router.get("/debug", auth_middleware_1.authenticateToken, (req, res) => {
+    console.log("🔍 Debug - Informations d'authentification:", {
+        userId: req.user?.userId,
+        email: req.user?.email,
+        role: req.user?.role,
+        tenantId: req.user?.tenantId,
+        headers: req.headers,
+        timestamp: new Date().toISOString()
+    });
+    return res.json({
+        success: true,
+        message: "Debug info",
+        data: {
+            user: {
+                id: req.user?.userId,
+                email: req.user?.email,
+                role: req.user?.role,
+                tenantId: req.user?.tenantId
+            },
+            permissions: {
+                canCreateTournament: req.user?.role === 'admin' || req.user?.role === 'coach',
+                canDeleteTournament: req.user?.role === 'admin',
+                canManageUsers: req.user?.role === 'admin'
+            },
+            timestamp: new Date().toISOString()
+        }
+    });
+});
 exports.default = router;
 //# sourceMappingURL=auth.routes.js.map

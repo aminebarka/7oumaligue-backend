@@ -6,33 +6,82 @@ const apiResponse_1 = require("../utils/apiResponse");
 const createTeam = async (req, res) => {
     const { name, logo, coachName } = req.body;
     try {
+        console.log("=== DÉBUT CRÉATION ÉQUIPE ===");
+        console.log("Headers:", req.headers);
+        console.log("User:", req.user);
+        console.log("Body:", req.body);
+        if (!req.user) {
+            console.error("❌ Utilisateur non authentifié lors de la création d'équipe");
+            return (0, apiResponse_1.badRequest)(res, "Authentification requise");
+        }
+        if (!name || name.trim().length === 0) {
+            console.error("❌ Nom d'équipe manquant ou vide");
+            return (0, apiResponse_1.badRequest)(res, "Le nom de l'équipe est requis");
+        }
+        if (!req.user.tenantId) {
+            console.error("❌ TenantId manquant pour l'utilisateur:", req.user);
+            return (0, apiResponse_1.badRequest)(res, "Problème d'authentification: tenant manquant");
+        }
+        console.log("✅ Données validées, tentative de création d'équipe:", {
+            name,
+            logo,
+            coachName,
+            tenantId: req.user.tenantId,
+            userId: req.user.userId
+        });
         const team = await database_1.prisma.team.create({
             data: {
-                name,
-                logo,
-                coachName,
+                name: name.trim(),
+                logo: logo || null,
+                coachName: coachName || null,
                 players: [],
-                tenantId: req.user?.tenantId,
+                tenantId: req.user.tenantId,
             },
         });
-        console.log("Équipe créée:", { id: team.id, name: team.name, tenantId: team.tenantId });
+        console.log("✅ Équipe créée avec succès:", {
+            id: team.id,
+            name: team.name,
+            tenantId: team.tenantId
+        });
         return (0, apiResponse_1.created)(res, team, "Équipe créée avec succès");
     }
     catch (error) {
-        console.error("Erreur création équipe:", error);
+        console.error("❌ ERREUR CRITIQUE lors de la création de l'équipe:", {
+            error: error?.message || 'Unknown error',
+            name: error?.name,
+            code: error?.code,
+            stack: error?.stack,
+            user: req.user ? {
+                userId: req.user.userId,
+                tenantId: req.user.tenantId,
+                email: req.user.email,
+                role: req.user.role
+            } : 'non authentifié',
+            body: req.body
+        });
+        if (error?.name === 'PrismaClientKnownRequestError') {
+            console.error("❌ Erreur Prisma connue:", error?.code);
+            return (0, apiResponse_1.badRequest)(res, `Erreur de base de données: ${error?.code}`);
+        }
+        if (error?.name === 'PrismaClientValidationError') {
+            console.error("❌ Erreur de validation Prisma");
+            return (0, apiResponse_1.badRequest)(res, "Données invalides pour la création de l'équipe");
+        }
+        if (error?.name === 'PrismaClientInitializationError') {
+            console.error("❌ Erreur d'initialisation Prisma");
+            return (0, apiResponse_1.badRequest)(res, "Erreur de connexion à la base de données");
+        }
+        console.error("❌ Erreur non gérée, retour d'erreur générique");
         return (0, apiResponse_1.badRequest)(res, "Erreur lors de la création de l'équipe");
+    }
+    finally {
+        console.log("=== FIN CRÉATION ÉQUIPE ===");
     }
 };
 exports.createTeam = createTeam;
 const getTeams = async (req, res) => {
     try {
         const teams = await database_1.prisma.team.findMany({
-            where: {
-                OR: [
-                    { tenantId: req.user?.tenantId },
-                    { tenantId: null }
-                ]
-            },
             include: {
                 coach: {
                     select: {
@@ -70,7 +119,7 @@ const getTeams = async (req, res) => {
         return (0, apiResponse_1.success)(res, teams);
     }
     catch (error) {
-        console.error("Erreur récupération équipes:", error);
+        console.error("Erreur récupération équipes:", error?.message || error);
         return (0, apiResponse_1.badRequest)(res, "Erreur lors de la récupération des équipes");
     }
 };
@@ -129,7 +178,7 @@ const getTeamById = async (req, res) => {
         return (0, apiResponse_1.success)(res, team);
     }
     catch (error) {
-        console.error("Erreur récupération équipe:", error);
+        console.error("Erreur récupération équipe:", error?.message || error);
         return (0, apiResponse_1.badRequest)(res, "Erreur lors de la récupération de l'équipe");
     }
 };
@@ -167,38 +216,83 @@ const updateTeam = async (req, res) => {
         return (0, apiResponse_1.success)(res, team, "Équipe mise à jour avec succès");
     }
     catch (error) {
-        console.error("Erreur mise à jour équipe:", error);
+        console.error("Erreur mise à jour équipe:", error?.message || error);
         return (0, apiResponse_1.badRequest)(res, "Erreur lors de la mise à jour de l'équipe");
     }
 };
 exports.updateTeam = updateTeam;
 const deleteTeam = async (req, res) => {
     const { id } = req.params;
+    const { force } = req.query;
+    console.log("🗑️  Tentative de suppression d'équipe:", {
+        teamId: id,
+        force: force,
+        userId: req.user?.userId,
+        tenantId: req.user?.tenantId,
+        headers: req.headers,
+        method: req.method,
+        url: req.url
+    });
     try {
+        if (!req.user) {
+            console.log("❌ Utilisateur non authentifié");
+            return (0, apiResponse_1.unauthorized)(res, "Utilisateur non authentifié");
+        }
+        const existingTeam = await database_1.prisma.team.findUnique({
+            where: {
+                id: id,
+                tenantId: req.user?.tenantId,
+            },
+        });
+        if (!existingTeam) {
+            console.log("❌ Équipe non trouvée:", { teamId: id, tenantId: req.user?.tenantId });
+            return (0, apiResponse_1.notFound)(res, "Équipe non trouvée");
+        }
+        console.log("✅ Équipe trouvée:", existingTeam);
         const tournamentTeams = await database_1.prisma.tournamentTeam.findMany({
             where: { teamId: id },
             include: {
                 tournament: true,
             },
         });
+        console.log("📊 Équipe dans des tournois:", tournamentTeams.length);
         const activeTournaments = tournamentTeams.filter((tt) => tt.tournament.status === "active");
-        if (activeTournaments.length > 0) {
-            return (0, apiResponse_1.badRequest)(res, "Impossible de supprimer une équipe participant à un tournoi actif");
+        if (activeTournaments.length > 0 && !force) {
+            console.log("❌ Équipe dans un tournoi actif:", activeTournaments);
+            return (0, apiResponse_1.badRequest)(res, "Impossible de supprimer une équipe participant à un tournoi actif. Utilisez le paramètre force=true pour forcer la suppression.");
         }
-        await database_1.prisma.player.updateMany({
+        if (force && activeTournaments.length > 0) {
+            console.log("⚠️  Suppression forcée - Retrait des liens avec les tournois");
+            await database_1.prisma.tournamentTeam.deleteMany({
+                where: { teamId: id }
+            });
+            console.log("✅ Liens avec les tournois supprimés");
+        }
+        const updatedPlayers = await database_1.prisma.player.updateMany({
             where: { teamId: id },
             data: { teamId: null },
         });
-        await database_1.prisma.team.delete({
+        console.log("👥 Joueurs mis à jour:", updatedPlayers.count);
+        const deletedTeam = await database_1.prisma.team.delete({
             where: {
                 id: id,
                 tenantId: req.user?.tenantId,
             },
         });
-        return (0, apiResponse_1.success)(res, null, "Équipe supprimée avec succès");
+        console.log("✅ Équipe supprimée avec succès:", deletedTeam);
+        const message = force
+            ? "Équipe supprimée avec succès (suppression forcée)"
+            : "Équipe supprimée avec succès";
+        return (0, apiResponse_1.success)(res, null, message);
     }
     catch (error) {
-        console.error("Erreur suppression équipe:", error);
+        console.error("❌ Erreur suppression équipe:", {
+            error: error?.message || error,
+            stack: error?.stack,
+            teamId: id,
+            userId: req.user?.userId,
+            tenantId: req.user?.tenantId
+        });
         return (0, apiResponse_1.badRequest)(res, "Erreur lors de la suppression de l'équipe");
     }
 };
@@ -216,35 +310,24 @@ const addPlayerToTeam = async (req, res) => {
         if (!team) {
             return (0, apiResponse_1.notFound)(res, "Équipe non trouvée");
         }
-        const player = await database_1.prisma.player.findFirst({
-            where: {
-                id: playerId,
-                tenantId: req.user?.tenantId,
-            },
+        const player = await database_1.prisma.player.findUnique({
+            where: { id: playerId },
         });
         if (!player) {
             return (0, apiResponse_1.notFound)(res, "Joueur non trouvé");
         }
         if (player.teamId && player.teamId !== id) {
-            return (0, apiResponse_1.badRequest)(res, "Ce joueur appartient déjà à une autre équipe");
+            return (0, apiResponse_1.badRequest)(res, "Le joueur est déjà dans une autre équipe");
         }
         await database_1.prisma.player.update({
             where: { id: playerId },
             data: { teamId: id },
         });
-        const updatedPlayers = team.players.includes(playerId) ? team.players : [...team.players, playerId];
-        const updatedTeam = await database_1.prisma.team.update({
-            where: { id: id },
-            data: { players: updatedPlayers },
-            include: {
-                playerRecords: true,
-            },
-        });
-        return (0, apiResponse_1.success)(res, updatedTeam, "Joueur ajouté à l'équipe");
+        return (0, apiResponse_1.success)(res, null, "Joueur ajouté à l'équipe avec succès");
     }
     catch (error) {
-        console.error("Erreur ajout joueur:", error);
-        return (0, apiResponse_1.badRequest)(res, "Erreur lors de l'ajout du joueur");
+        console.error("Erreur ajout joueur à équipe:", error?.message || error);
+        return (0, apiResponse_1.badRequest)(res, "Erreur lors de l'ajout du joueur à l'équipe");
     }
 };
 exports.addPlayerToTeam = addPlayerToTeam;
@@ -260,23 +343,24 @@ const removePlayerFromTeam = async (req, res) => {
         if (!team) {
             return (0, apiResponse_1.notFound)(res, "Équipe non trouvée");
         }
+        const player = await database_1.prisma.player.findUnique({
+            where: { id: playerId },
+        });
+        if (!player) {
+            return (0, apiResponse_1.notFound)(res, "Joueur non trouvé");
+        }
+        if (player.teamId !== id) {
+            return (0, apiResponse_1.badRequest)(res, "Le joueur n'est pas dans cette équipe");
+        }
         await database_1.prisma.player.update({
             where: { id: playerId },
             data: { teamId: null },
         });
-        const updatedPlayers = team.players.filter((pid) => pid !== playerId);
-        const updatedTeam = await database_1.prisma.team.update({
-            where: { id: id },
-            data: { players: updatedPlayers },
-            include: {
-                playerRecords: true,
-            },
-        });
-        return (0, apiResponse_1.success)(res, updatedTeam, "Joueur retiré de l'équipe");
+        return (0, apiResponse_1.success)(res, null, "Joueur retiré de l'équipe avec succès");
     }
     catch (error) {
-        console.error("Erreur retrait joueur:", error);
-        return (0, apiResponse_1.badRequest)(res, "Erreur lors du retrait du joueur");
+        console.error("Erreur retrait joueur de équipe:", error?.message || error);
+        return (0, apiResponse_1.badRequest)(res, "Erreur lors du retrait du joueur de l'équipe");
     }
 };
 exports.removePlayerFromTeam = removePlayerFromTeam;

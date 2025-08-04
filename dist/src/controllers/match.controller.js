@@ -4,41 +4,39 @@ exports.deleteMatch = exports.updateMatchScore = exports.updateMatch = exports.g
 const database_1 = require("../config/database");
 const apiResponse_1 = require("../utils/apiResponse");
 const createMatch = async (req, res) => {
-    const { date, time, venue, homeTeam, awayTeam, tournamentId, groupId } = req.body;
     try {
-        if (homeTeam === awayTeam) {
-            return (0, apiResponse_1.badRequest)(res, "Une équipe ne peut pas jouer contre elle-même");
+        const { date, time, venue, homeTeam, tournamentId, groupId } = req.body;
+        if (!date || !time || !venue || !homeTeam || !tournamentId) {
+            return (0, apiResponse_1.badRequest)(res, "Tous les champs sont requis");
         }
-        const homeTeamExists = await database_1.prisma.team.findFirst({
-            where: {
-                id: homeTeam,
-                tenantId: req.user?.tenantId,
-            },
-        });
-        const awayTeamExists = await database_1.prisma.team.findFirst({
-            where: {
-                id: awayTeam,
-                tenantId: req.user?.tenantId,
-            },
-        });
-        if (!homeTeamExists || !awayTeamExists) {
-            return (0, apiResponse_1.badRequest)(res, "Une ou plusieurs équipes n'existent pas");
+        const matchDate = new Date(date + 'T' + time + ':00');
+        if (isNaN(matchDate.getTime())) {
+            return (0, apiResponse_1.badRequest)(res, "Format de date invalide");
         }
-        const tournament = await database_1.prisma.tournament.findFirst({
+        const tournament = await database_1.prisma.tournament.findUnique({
             where: {
                 id: tournamentId,
-                tenantId: req.user?.tenantId,
             },
         });
         if (!tournament) {
             return (0, apiResponse_1.notFound)(res, "Tournoi non trouvé");
         }
+        const homeTeamExists = await database_1.prisma.team.findFirst({
+            where: {
+                OR: [
+                    { name: homeTeam },
+                    { id: homeTeam }
+                ]
+            },
+        });
+        if (!homeTeamExists) {
+            return (0, apiResponse_1.notFound)(res, "L'équipe n'existe pas");
+        }
         if (groupId) {
-            const group = await database_1.prisma.group.findFirst({
+            const group = await database_1.prisma.group.findUnique({
                 where: {
                     id: groupId,
                     tournamentId: tournamentId,
-                    tenantId: req.user?.tenantId,
                 },
             });
             if (!group) {
@@ -47,11 +45,11 @@ const createMatch = async (req, res) => {
         }
         const match = await database_1.prisma.match.create({
             data: {
-                date,
+                date: matchDate,
                 time,
                 venue,
-                homeTeam,
-                awayTeam,
+                homeTeamId: homeTeamExists.id,
+                homeTeam: homeTeamExists.name,
                 tournamentId,
                 groupId,
                 status: "scheduled",
@@ -59,13 +57,6 @@ const createMatch = async (req, res) => {
             },
             include: {
                 homeTeamRef: {
-                    select: {
-                        id: true,
-                        name: true,
-                        logo: true,
-                    },
-                },
-                awayTeamRef: {
                     select: {
                         id: true,
                         name: true,
@@ -97,9 +88,7 @@ exports.createMatch = createMatch;
 const getMatches = async (req, res) => {
     try {
         const { tournamentId, groupId, status, date } = req.query;
-        const whereClause = {
-            tenantId: req.user?.tenantId,
-        };
+        const whereClause = {};
         if (tournamentId) {
             whereClause.tournamentId = tournamentId;
         }
@@ -116,13 +105,6 @@ const getMatches = async (req, res) => {
             where: whereClause,
             include: {
                 homeTeamRef: {
-                    select: {
-                        id: true,
-                        name: true,
-                        logo: true,
-                    },
-                },
-                awayTeamRef: {
                     select: {
                         id: true,
                         name: true,
@@ -166,11 +148,6 @@ const getMatchById = async (req, res) => {
                         playerRecords: true,
                     },
                 },
-                awayTeamRef: {
-                    include: {
-                        playerRecords: true,
-                    },
-                },
                 group: {
                     select: {
                         id: true,
@@ -209,21 +186,14 @@ const updateMatch = async (req, res) => {
             updateData.venue = venue;
         if (status)
             updateData.status = status;
+        const whereClause = req.user?.role === 'admin'
+            ? { id: id }
+            : { id: id, tenantId: req.user?.tenantId };
         const match = await database_1.prisma.match.update({
-            where: {
-                id: id,
-                tenantId: req.user?.tenantId,
-            },
+            where: whereClause,
             data: updateData,
             include: {
                 homeTeamRef: {
-                    select: {
-                        id: true,
-                        name: true,
-                        logo: true,
-                    },
-                },
-                awayTeamRef: {
                     select: {
                         id: true,
                         name: true,
@@ -242,28 +212,29 @@ const updateMatch = async (req, res) => {
 exports.updateMatch = updateMatch;
 const updateMatchScore = async (req, res) => {
     const { id } = req.params;
-    const { homeScore, awayScore, status } = req.body;
+    const { homeScore } = req.body;
     try {
         const match = await database_1.prisma.match.findUnique({
             where: {
                 id: id,
                 tenantId: req.user?.tenantId,
             },
-            include: {
-                homeTeamRef: true,
-                awayTeamRef: true,
-                group: true,
-            },
         });
         if (!match) {
             return (0, apiResponse_1.notFound)(res, "Match non trouvé");
         }
+        if (match.status === "completed") {
+            return (0, apiResponse_1.badRequest)(res, "Le match est déjà terminé");
+        }
+        const homeScoreInt = parseInt(homeScore);
+        if (isNaN(homeScoreInt)) {
+            return (0, apiResponse_1.badRequest)(res, "Score invalide");
+        }
         const updatedMatch = await database_1.prisma.match.update({
             where: { id: id },
             data: {
-                homeScore: Number.parseInt(homeScore),
-                awayScore: Number.parseInt(awayScore),
-                status: status || "completed",
+                homeScore: homeScoreInt,
+                status: "completed",
             },
             include: {
                 homeTeamRef: {
@@ -273,95 +244,51 @@ const updateMatchScore = async (req, res) => {
                         logo: true,
                     },
                 },
-                awayTeamRef: {
+                group: {
                     select: {
                         id: true,
                         name: true,
-                        logo: true,
+                    },
+                },
+                tournament: {
+                    select: {
+                        id: true,
+                        name: true,
                     },
                 },
             },
         });
-        const homeScoreInt = Number.parseInt(homeScore);
-        const awayScoreInt = Number.parseInt(awayScore);
         const homeTeamUpdate = {
             matchesPlayed: { increment: 1 },
             goalsScored: { increment: homeScoreInt },
+            wins: { increment: 1 },
         };
-        const awayTeamUpdate = {
-            matchesPlayed: { increment: 1 },
-            goalsScored: { increment: awayScoreInt },
-        };
-        if (homeScoreInt > awayScoreInt) {
-            homeTeamUpdate.wins = { increment: 1 };
-            awayTeamUpdate.losses = { increment: 1 };
+        if (match.homeTeam) {
+            await Promise.all([
+                database_1.prisma.team.update({
+                    where: { id: match.homeTeam },
+                    data: homeTeamUpdate,
+                }),
+            ]);
         }
-        else if (homeScoreInt < awayScoreInt) {
-            homeTeamUpdate.losses = { increment: 1 };
-            awayTeamUpdate.wins = { increment: 1 };
-        }
-        else {
-            homeTeamUpdate.draws = { increment: 1 };
-            awayTeamUpdate.draws = { increment: 1 };
-        }
-        await Promise.all([
-            database_1.prisma.team.update({
-                where: { id: match.homeTeam },
-                data: homeTeamUpdate,
-            }),
-            database_1.prisma.team.update({
-                where: { id: match.awayTeam },
-                data: awayTeamUpdate,
-            }),
-        ]);
-        if (match.groupId) {
+        if (match.groupId && match.homeTeam) {
             const homeGroupTeam = await database_1.prisma.groupTeam.findFirst({
                 where: {
                     groupId: match.groupId,
                     teamId: match.homeTeam,
                 },
             });
-            const awayGroupTeam = await database_1.prisma.groupTeam.findFirst({
-                where: {
-                    groupId: match.groupId,
-                    teamId: match.awayTeam,
-                },
-            });
-            if (homeGroupTeam && awayGroupTeam) {
+            if (homeGroupTeam) {
                 const homeGroupUpdate = {
                     played: { increment: 1 },
                     goalsFor: { increment: homeScoreInt },
-                    goalsAgainst: { increment: awayScoreInt },
+                    wins: { increment: 1 },
+                    points: { increment: 3 },
                 };
-                const awayGroupUpdate = {
-                    played: { increment: 1 },
-                    goalsFor: { increment: awayScoreInt },
-                    goalsAgainst: { increment: homeScoreInt },
-                };
-                if (homeScoreInt > awayScoreInt) {
-                    homeGroupUpdate.wins = { increment: 1 };
-                    homeGroupUpdate.points = { increment: 3 };
-                    awayGroupUpdate.losses = { increment: 1 };
-                }
-                else if (homeScoreInt < awayScoreInt) {
-                    homeGroupUpdate.losses = { increment: 1 };
-                    awayGroupUpdate.wins = { increment: 1 };
-                    awayGroupUpdate.points = { increment: 3 };
-                }
-                else {
-                    homeGroupUpdate.draws = { increment: 1 };
-                    homeGroupUpdate.points = { increment: 1 };
-                    awayGroupUpdate.draws = { increment: 1 };
-                    awayGroupUpdate.points = { increment: 1 };
-                }
                 await Promise.all([
                     database_1.prisma.groupTeam.update({
                         where: { id: homeGroupTeam.id },
                         data: homeGroupUpdate,
-                    }),
-                    database_1.prisma.groupTeam.update({
-                        where: { id: awayGroupTeam.id },
-                        data: awayGroupUpdate,
                     }),
                 ]);
             }

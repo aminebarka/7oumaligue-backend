@@ -35,6 +35,10 @@ if (process.env.NODE_ENV === "development") {
 }
 exports.prisma.$on("error", (e) => {
     logger_1.logger.error("Database error:", e.message);
+    logger_1.logger.error("Database error details:", {
+        target: e.target,
+        timestamp: e.timestamp
+    });
 });
 exports.prisma.$on("info", (e) => {
     logger_1.logger.info("Database info:", e.message);
@@ -43,18 +47,57 @@ exports.prisma.$on("warn", (e) => {
     logger_1.logger.warn("Database warning:", e.message);
 });
 const connectDatabase = async () => {
-    try {
-        await exports.prisma.$connect();
-        logger_1.logger.info("✅ Database connected successfully");
-    }
-    catch (error) {
-        logger_1.logger.error("❌ Database connection failed:", error);
-        process.exit(1);
+    const maxRetries = 5;
+    const retryDelay = 2000;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            await exports.prisma.$connect();
+            logger_1.logger.info("✅ Database connected successfully");
+            return;
+        }
+        catch (error) {
+            logger_1.logger.error(`❌ Database connection attempt ${attempt} failed:`, error);
+            if (attempt === maxRetries) {
+                logger_1.logger.error("❌ All database connection attempts failed. Exiting...");
+                process.exit(1);
+            }
+            logger_1.logger.info(`🔄 Retrying database connection in ${retryDelay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+        }
     }
 };
 exports.connectDatabase = connectDatabase;
 process.on("beforeExit", async () => {
-    await exports.prisma.$disconnect();
-    logger_1.logger.info("🔌 Database disconnected");
+    try {
+        await exports.prisma.$disconnect();
+        logger_1.logger.info("🔌 Database disconnected gracefully");
+    }
+    catch (error) {
+        logger_1.logger.error("❌ Error during database disconnection:", error);
+    }
+});
+process.on("SIGINT", async () => {
+    logger_1.logger.info("🛑 Received SIGINT, shutting down gracefully...");
+    try {
+        await exports.prisma.$disconnect();
+        logger_1.logger.info("🔌 Database disconnected");
+        process.exit(0);
+    }
+    catch (error) {
+        logger_1.logger.error("❌ Error during shutdown:", error);
+        process.exit(1);
+    }
+});
+process.on("SIGTERM", async () => {
+    logger_1.logger.info("🛑 Received SIGTERM, shutting down gracefully...");
+    try {
+        await exports.prisma.$disconnect();
+        logger_1.logger.info("🔌 Database disconnected");
+        process.exit(0);
+    }
+    catch (error) {
+        logger_1.logger.error("❌ Error during shutdown:", error);
+        process.exit(1);
+    }
 });
 //# sourceMappingURL=database.js.map

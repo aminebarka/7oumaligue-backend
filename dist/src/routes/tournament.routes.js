@@ -48,13 +48,41 @@ const tournamentValidation = [
 ];
 const idValidation = [(0, express_validator_1.param)("id").isString().isLength({ min: 1 }).withMessage("ID invalide")];
 const teamIdValidation = [(0, express_validator_1.body)("teamId").isString().isLength({ min: 1 }).withMessage("ID d'équipe invalide")];
+const matchGenerationValidation = [
+    (0, express_validator_1.body)("matchTime")
+        .optional()
+        .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)
+        .withMessage("Format d'heure invalide (HH:MM)")
+];
+const groupTeamValidation = [
+    (0, express_validator_1.body)("groupId").isString().isLength({ min: 1 }).withMessage("ID de groupe invalide"),
+    (0, express_validator_1.body)("teamId").isString().isLength({ min: 1 }).withMessage("ID d'équipe invalide")
+];
+const groupValidation = [
+    (0, express_validator_1.body)("name").isString().isLength({ min: 1, max: 100 }).withMessage("Nom de groupe invalide"),
+    (0, express_validator_1.body)("tournamentId").isString().isLength({ min: 1 }).withMessage("ID de tournoi invalide")
+];
+const groupUpdateValidation = [
+    (0, express_validator_1.body)("groupId").isString().isLength({ min: 1 }).withMessage("ID de groupe invalide"),
+    (0, express_validator_1.body)("name").isString().isLength({ min: 1, max: 100 }).withMessage("Nom de groupe invalide")
+];
 router.get("/", auth_middleware_1.authenticateToken, tournament_controller_1.getTournaments);
 router.get("/:id", auth_middleware_1.authenticateToken, idValidation, validateRequest, tournament_controller_1.getTournamentById);
-router.post("/", auth_middleware_1.authenticateToken, auth_middleware_1.requireAdmin, tournamentValidation, validateRequest, tournament_controller_1.createTournament);
-router.put("/:id", auth_middleware_1.authenticateToken, auth_middleware_1.requireAdmin, idValidation, validateRequest, tournament_controller_1.updateTournament);
+router.get("/stadiums/list", auth_middleware_1.authenticateToken, tournament_controller_1.getStadiums);
+router.get("/stadiums", auth_middleware_1.authenticateToken, tournament_controller_1.getStadiums);
+router.post("/", auth_middleware_1.authenticateToken, auth_middleware_1.requireAdminOrCoach, tournamentValidation, validateRequest, tournament_controller_1.createTournament);
+router.put("/:id", auth_middleware_1.authenticateToken, auth_middleware_1.requireAdminOrCoach, idValidation, validateRequest, tournament_controller_1.updateTournament);
 router.delete("/:id", auth_middleware_1.authenticateToken, auth_middleware_1.requireAdmin, idValidation, validateRequest, tournament_controller_1.deleteTournament);
-router.post("/:id/teams", auth_middleware_1.authenticateToken, auth_middleware_1.requireAdmin, idValidation, teamIdValidation, validateRequest, tournament_controller_1.addTeamToTournament);
-router.delete("/:id/teams/:teamId", auth_middleware_1.authenticateToken, auth_middleware_1.requireAdmin, idValidation, validateRequest, tournament_controller_1.removeTeamFromTournament);
-router.post("/:id/draw", auth_middleware_1.authenticateToken, auth_middleware_1.requireAdmin, idValidation, validateRequest, tournament_controller_1.performDraw);
+router.post("/:id/teams", auth_middleware_1.authenticateToken, auth_middleware_1.requireAdminOrCoach, idValidation, teamIdValidation, validateRequest, tournament_controller_1.addTeamToTournament);
+router.delete("/:id/teams/:teamId", auth_middleware_1.authenticateToken, auth_middleware_1.requireAdminOrCoach, idValidation, validateRequest, tournament_controller_1.removeTeamFromTournament);
+router.post("/:id/draw", auth_middleware_1.authenticateToken, auth_middleware_1.requireAdminOrCoach, idValidation, validateRequest, tournament_controller_1.performDraw);
+router.post("/:id/generate-matches", auth_middleware_1.authenticateToken, auth_middleware_1.requireAdminOrCoach, idValidation, matchGenerationValidation, validateRequest, tournament_controller_1.generateMatches);
+router.post("/:id/generate-final-matches", auth_middleware_1.authenticateToken, auth_middleware_1.requireAdminOrCoach, idValidation, matchGenerationValidation, validateRequest, tournament_controller_1.generateFinalPhaseMatches);
+router.post("/:id/update-final-phase", auth_middleware_1.authenticateToken, auth_middleware_1.requireAdminOrCoach, idValidation, validateRequest, tournament_controller_1.updateFinalPhaseMatches);
+router.post("/groups/add-team", auth_middleware_1.authenticateToken, auth_middleware_1.requireAdminOrCoach, groupTeamValidation, validateRequest, tournament_controller_1.addTeamToGroup);
+router.post("/groups/remove-team", auth_middleware_1.authenticateToken, auth_middleware_1.requireAdminOrCoach, groupTeamValidation, validateRequest, tournament_controller_1.removeTeamFromGroup);
+router.post("/groups/create", auth_middleware_1.authenticateToken, auth_middleware_1.requireAdminOrCoach, groupValidation, validateRequest, tournament_controller_1.createGroup);
+router.post("/groups/update", auth_middleware_1.authenticateToken, auth_middleware_1.requireAdminOrCoach, groupUpdateValidation, validateRequest, tournament_controller_1.updateGroup);
+router.post("/groups/delete", auth_middleware_1.authenticateToken, auth_middleware_1.requireAdminOrCoach, [(0, express_validator_1.body)("groupId").isString().isLength({ min: 1 }).withMessage("ID de groupe invalide")], validateRequest, tournament_controller_1.deleteGroup);
 exports.default = router;
 //# sourceMappingURL=tournament.routes.js.map

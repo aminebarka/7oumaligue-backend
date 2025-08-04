@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.notFound = exports.success = exports.created = exports.unauthorized = exports.badRequest = void 0;
+exports.error = exports.notFound = exports.success = exports.created = exports.unauthorized = exports.badRequest = void 0;
 const badRequest = (res, message) => {
     return res.status(400).json({ success: false, message });
 };
@@ -24,4 +24,8 @@ const notFound = (res, message) => {
     return res.status(404).json({ success: false, message });
 };
 exports.notFound = notFound;
+const error = (res, message, statusCode = 500) => {
+    return res.status(statusCode).json({ success: false, message });
+};
+exports.error = error;
 //# sourceMappingURL=apiResponse.js.map
