@@ -24,7 +24,7 @@ dotenv_1.default.config();
 console.log('🔍 DEBUG - process.env.PORT:', process.env.PORT);
 console.log('🔍 DEBUG - NODE_ENV:', process.env.NODE_ENV);
 const app = (0, express_1.default)();
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 5000;
 console.log('🚀 DEBUG - Final PORT value:', PORT);
 app.use(cors_middleware_1.corsMiddleware);
 app.use((0, cors_1.default)({

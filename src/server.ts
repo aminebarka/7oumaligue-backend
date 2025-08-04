@@ -26,7 +26,7 @@ console.log('🔍 DEBUG - process.env.PORT:', process.env.PORT)
 console.log('🔍 DEBUG - NODE_ENV:', process.env.NODE_ENV)
 
 const app = express()
-const PORT = process.env.PORT || 8080
+const PORT = process.env.PORT || 5000
 
 console.log('🚀 DEBUG - Final PORT value:', PORT)
 
