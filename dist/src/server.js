@@ -17,7 +17,7 @@ const playerRoutes = require('./routes/player.routes').default;
 const matchRoutes = require('./routes/match.routes').default;
 dotenv_1.default.config();
 const app = (0, express_1.default)();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT ;
 app.use((0, helmet_1.default)());
 const limiter = (0, express_rate_limit_1.default)({
     windowMs: Number.parseInt(process.env.RATE_LIMIT_WINDOW_MS || "900000"),

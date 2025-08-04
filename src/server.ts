@@ -22,7 +22,7 @@ const stadiumRoutes = require('./routes/stadium.routes').default;
 dotenv.config()
 
 const app = express()
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT
 
 // CORS middleware personnalisé - DOIT être en premier
 app.use(corsMiddleware)
