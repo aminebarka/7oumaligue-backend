@@ -1,58 +1,47 @@
-name: Deploy Backend to Azure App Service
+name: Deploy Backend to Azure
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'backend/**'
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'backend/**'
-  workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: 7oumaligue-backend
+  AZURE_RESOURCE_GROUP: 7oumaligue-rg
+  CONTAINER_REGISTRY: 7oumaligue.azurecr.io
+  IMAGE_NAME: 7oumaligue-backend
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout code
+    - name: Checkout
       uses: actions/checkout@v4
-      
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Docker Login
+      uses: azure/docker-login@v1
       with:
-        node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: backend/package-lock.json
-    
-    - name: Install dependencies
-      run: |
-        cd backend
-        npm ci
-    
-    - name: Build the application
-      run: |
-        cd backend
-        npm run build
-        npm run check-build
-    
-    - name: Verify deployment configuration
-      run: |
-        cd backend
-        npm run verify-deployment
-    
-    - name: Deploy to Azure App Service
-      uses: azure/webapps-deploy@v3
+        login-server: ${{ env.CONTAINER_REGISTRY }}
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}
+
+    - name: Build and Push
+      uses: docker/build-push-action@v4
       with:
-        app-name: '7oumaligue-backend'
-        package: backend/
-        startup-command: 'bash startup.sh'
-      env:
-        AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-    
-    - name: Health check
-      run: |
-        echo "Waiting for deployment to complete..."
-        sleep 30
-        curl -f https://7oumaligue-backend.azurewebsites.net/health || echo "Health check failed - app may still be starting" 
+        context: ./backend
+        file: ./backend/Dockerfile
+        push: true
+        tags: |
+          ${{ env.CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          ${{ env.CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+    - name: Deploy to Azure
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ env.AZURE_WEBAPP_NAME }}
+        resource-group: ${{ env.AZURE_RESOURCE_GROUP }}
+        images: ${{ env.CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} 

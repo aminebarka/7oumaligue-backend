@@ -15,7 +15,7 @@ console.log('\n📋 Vérification des binaires locaux...');
 if (fs.existsSync(tscPath)) {
     console.log('✅ TypeScript trouvé:', tscPath);
     try {
-        const version = execSync(`node ${tscPath} --version`, { encoding: 'utf8' });
+        const version = execSync(`${tscPath} --version`, { encoding: 'utf8' });
         console.log('   Version:', version.trim());
     } catch (error) {
         console.log('❌ Erreur lors de l\'exécution de TypeScript');
@@ -33,7 +33,7 @@ if (fs.existsSync(tsNodePath)) {
 
 console.log('\n🔨 Test de compilation avec chemin explicite...');
 try {
-    execSync(`node ${tscPath} --noEmit`, { stdio: 'inherit' });
+    execSync(`${tscPath} --noEmit`, { stdio: 'inherit' });
     console.log('✅ Compilation TypeScript réussie avec chemin explicite');
 } catch (error) {
     console.log('❌ Erreur de compilation TypeScript');
