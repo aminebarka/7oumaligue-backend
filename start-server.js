@@ -1,92 +1,100 @@
 #!/usr/bin/env node
 
-const { spawn } = require('child_process');
+const { spawn, exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
-const net = require('net');
 
-console.log('🚀 === DÉMARRAGE FORCÉ DU SERVEUR ===');
-console.log('📅 Date:', new Date().toISOString());
-console.log('📁 Répertoire:', process.cwd());
+console.log('🚀 Starting 7ouma Ligue Backend Server...');
 
-// Fonction pour vérifier si un port est disponible
-const checkPort = (port) => new Promise((resolve) => {
-    const server = net.createServer();
-    server.once('error', () => resolve(false));
-    server.once('listening', () => {
-        server.close();
-        resolve(true);
-    });
-    server.listen(port);
-});
+// Check if TypeScript is compiled
+const distPath = path.join(__dirname, 'dist', 'src', 'server.js');
+const srcPath = path.join(__dirname, 'src', 'server.ts');
 
-// Vérifier que le fichier compilé existe
-const serverPath = path.join(__dirname, 'dist', 'src', 'server.js');
-if (!fs.existsSync(serverPath)) {
-    console.log('❌ dist/src/server.js manquant');
-    console.log('🔨 Tentative de build...');
-    
-    const build = spawn('npm', ['run', 'build'], { 
-        stdio: 'inherit',
-        cwd: __dirname 
-    });
-    
-    build.on('close', (code) => {
-        if (code === 0) {
-            console.log('✅ Build réussi, démarrage du serveur...');
-            startServer();
-        } else {
-            console.log('❌ Build échoué');
-            process.exit(1);
-        }
-    });
-} else {
-    console.log('✅ dist/src/server.js trouvé');
-    startServer();
-}
-
-async function startServer() {
-    console.log('🚀 Démarrage du serveur...');
-    console.log('🔧 Variables d\'environnement:');
-    console.log('   NODE_ENV:', process.env.NODE_ENV || 'non défini');
-    console.log('   PORT:', process.env.PORT || 'non défini');
-    
-    // Déterminer le port à utiliser
-    const port = process.env.PORT || (process.env.NODE_ENV === 'production' ? 8080 : 5000);
-    
-    // Vérifier si le port est disponible
-    const portAvailable = await checkPort(port);
-    if (!portAvailable) {
-        console.error(`🚨 Port ${port} est occupé! Tentative avec un port alternatif...`);
-        const newPort = process.env.NODE_ENV === 'production' ? 8081 : 5001;
-        console.log(`🔄 Utilisation du port de secours: ${newPort}`);
-        startApp(newPort);
+async function checkAndCompile() {
+  try {
+    // Check if dist directory exists and has content
+    if (!fs.existsSync(distPath)) {
+      console.log('📦 TypeScript compilation needed...');
+      await compileTypeScript();
     } else {
-        console.log(`✅ Port ${port} disponible`);
-        startApp(port);
+      console.log('✅ TypeScript already compiled');
     }
+  } catch (error) {
+    console.log('⚠️  Compilation check failed, attempting to compile...');
+    await compileTypeScript();
+  }
 }
 
-function startApp(port) {
-    console.log(`🎯 Démarrage sur le port ${port}`);
-    
-    // Démarrer le serveur
-    const server = spawn('node', [serverPath], { 
-        stdio: 'inherit',
-        env: { 
-            ...process.env, 
-            NODE_ENV: process.env.NODE_ENV || 'production',
-            PORT: port.toString()
-        }
+function compileTypeScript() {
+  return new Promise((resolve, reject) => {
+    console.log('🔨 Compiling TypeScript...');
+    const tsc = spawn('npx', ['tsc'], { 
+      stdio: 'inherit',
+      cwd: __dirname 
     });
-    
-    server.on('close', (code) => {
-        console.log('🏁 Serveur arrêté avec code:', code);
-        process.exit(code);
+
+    tsc.on('close', (code) => {
+      if (code === 0) {
+        console.log('✅ TypeScript compilation successful');
+        resolve();
+      } else {
+        console.error('❌ TypeScript compilation failed');
+        reject(new Error(`TypeScript compilation failed with code ${code}`));
+      }
     });
-    
-    server.on('error', (error) => {
-        console.error('❌ Erreur serveur:', error);
-        process.exit(1);
+
+    tsc.on('error', (error) => {
+      console.error('❌ TypeScript compilation error:', error.message);
+      reject(error);
     });
+  });
 }
+
+function startServer() {
+  console.log('🌐 Starting server on port 8080...');
+  
+  // Set production environment
+  process.env.NODE_ENV = 'production';
+  process.env.PORT = '8080';
+  
+  const server = spawn('node', [distPath], {
+    stdio: 'inherit',
+    cwd: __dirname,
+    env: { ...process.env }
+  });
+
+  server.on('error', (error) => {
+    console.error('❌ Server startup error:', error.message);
+    process.exit(1);
+  });
+
+  server.on('close', (code) => {
+    console.log(`🔄 Server process exited with code ${code}`);
+    if (code !== 0) {
+      process.exit(code);
+    }
+  });
+
+  // Handle graceful shutdown
+  process.on('SIGTERM', () => {
+    console.log('🛑 Received SIGTERM, shutting down gracefully...');
+    server.kill('SIGTERM');
+  });
+
+  process.on('SIGINT', () => {
+    console.log('🛑 Received SIGINT, shutting down gracefully...');
+    server.kill('SIGINT');
+  });
+}
+
+async function main() {
+  try {
+    await checkAndCompile();
+    startServer();
+  } catch (error) {
+    console.error('💥 Startup failed:', error.message);
+    process.exit(1);
+  }
+}
+
+main();
