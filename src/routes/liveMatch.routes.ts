@@ -24,7 +24,7 @@ const validateRequest = (req: express.Request, res: express.Response, next: expr
       res,
       errors
         .array()
-        .map((err) => err.msg)
+        .map((err: any) => err.msg)
         .join(", "),
     );
   }

@@ -32,7 +32,7 @@ const validateRequest = (req: express.Request, res: express.Response, next: expr
       res,
       errors
         .array()
-        .map((err) => err.msg)
+        .map((err: any) => err.msg)
         .join(", "),
     )
   }
@@ -49,7 +49,7 @@ const tournamentValidation = [
   body("endDate")
     .isISO8601()
     .withMessage("Date de fin invalide")
-    .custom((endDate, { req }) => {
+    .custom((endDate: any, { req }: any) => {
       if (new Date(endDate) <= new Date(req.body.startDate)) {
         throw new Error("La date de fin doit être postérieure à la date de début")
       }

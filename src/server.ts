@@ -80,11 +80,11 @@ const limiter = rateLimit({
   legacyHeaders: false,
   skipSuccessfulRequests: true, // Ne pas compter les requêtes réussies
   skipFailedRequests: false, // Compter les requêtes échouées
-  keyGenerator: (req) => {
+  keyGenerator: (req: any) => {
     // Utiliser l'IP ou l'ID utilisateur si disponible
     return req.user?.userId ? req.user.userId.toString() : req.ip || 'unknown';
   },
-  handler: (req, res) => {
+  handler: (req: any, res: any) => {
     logger.warn(`Rate limit dépassé pour ${req.ip}`);
     const windowMs = Number.parseInt(process.env.RATE_LIMIT_WINDOW_MS || "900000");
     const retryAfterMinutes = Math.ceil(windowMs / 1000 / 60);
