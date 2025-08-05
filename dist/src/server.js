@@ -8,6 +8,7 @@ const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const dotenv_1 = __importDefault(require("dotenv"));
+const os_1 = __importDefault(require("os"));
 const logger_1 = require("./utils/logger");
 const error_middleware_1 = require("./middleware/error.middleware");
 const cors_middleware_1 = require("./middleware/cors.middleware");
@@ -162,12 +163,22 @@ app.use(error_middleware_1.errorHandler);
 const startServer = async () => {
     try {
         await (0, database_1.connectDatabase)();
-        console.log('🎯 DEBUG - About to start server on port:', PORT);
-        app.listen(PORT, () => {
-            console.log('✅ DEBUG - Server successfully started on port:', PORT);
-            logger_1.logger.info(`🚀 Server running on port ${PORT}`);
+        const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
+        const port = Number(PORT);
+        console.log('🎯 DEBUG - About to start server on', host + ':' + port);
+        app.listen(port, host, () => {
+            console.log(`✅ Server running on ${host}:${port}`);
+            logger_1.logger.info(`🚀 Server running on ${host}:${port}`);
             logger_1.logger.info(`📊 Environment: ${process.env.NODE_ENV || "development"}`);
             logger_1.logger.info(`🌐 CORS enabled for: ${process.env.FRONTEND_URL || "http://localhost:5173"}`);
+            console.log(`🖥️  Network interfaces:`);
+            Object.entries(os_1.default.networkInterfaces()).forEach(([name, interfaces]) => {
+                interfaces?.forEach(info => {
+                    if (info.family === 'IPv4') {
+                        console.log(`  - ${name}: ${info.address} (${info.family})`);
+                    }
+                });
+            });
         });
     }
     catch (error) {

@@ -19,6 +19,7 @@
     "test-azure": "bash test-azure-local.sh",
     "check-azure": "node check-azure-config.js",
     "test-docker": "bash test-docker-azure.sh",
+    "analyze-logs": "node analyze-azure-logs.js",
     "start:azure": "tsc && node dist/src/server.js",
     "start:prod": "node dist/src/server.js",
     "pm2:start": "pm2 start ecosystem.config.js",

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 === DÉMARRAGE AZURE AVEC CONTOURNEMENT LOADER ==="
+echo "🚀 === DÉMARRAGE AZURE AVEC INSTALLATION COMPLÈTE ==="
 echo "📅 Date: $(date)"
 echo "📁 Répertoire: $(pwd)"
 
@@ -22,7 +22,9 @@ apt-get install -y -qq \
     libgif-dev \
     librsvg2-dev \
     libpng-dev \
-    pkg-config
+    pkg-config \
+    curl \
+    git
 
 echo "✅ Dépendances système installées"
 
@@ -34,7 +36,27 @@ echo "   NODE_OPTIONS: ${NODE_OPTIONS:-désactivé}"
 echo "📦 Vérification des dépendances npm..."
 if [ -f "package.json" ]; then
     echo "✅ package.json trouvé"
-    npm list --depth=0 --silent || echo "⚠️ Certaines dépendances peuvent être manquantes"
+    
+    # Installer les dépendances si node_modules n'existe pas
+    if [ ! -d "node_modules" ]; then
+        echo "📦 Installation des dépendances npm..."
+        npm install
+    else
+        echo "✅ node_modules existe déjà"
+    fi
+    
+    # Installer TypeScript globalement
+    echo "🔧 Installation de TypeScript globalement..."
+    npm install -g typescript@latest
+    
+    # Vérifier l'installation de TypeScript
+    if command -v tsc &> /dev/null; then
+        echo "✅ TypeScript installé globalement"
+        echo "   Version: $(tsc --version)"
+    else
+        echo "❌ TypeScript non trouvé, installation locale..."
+        npm install typescript@latest
+    fi
 else
     echo "❌ package.json non trouvé"
     exit 1
@@ -43,10 +65,17 @@ fi
 echo "🔨 Vérification du build..."
 if [ ! -f "dist/src/server.js" ]; then
     echo "⚠️ dist/src/server.js manquant, build en cours..."
-    npm run build
+    
+    # Utiliser npx pour s'assurer que tsc est disponible
+    npx tsc
     if [ ! -f "dist/src/server.js" ]; then
         echo "❌ Build échoué"
-        exit 1
+        echo "🔍 Tentative avec npm run build..."
+        npm run build
+        if [ ! -f "dist/src/server.js" ]; then
+            echo "❌ Build échoué définitivement"
+            exit 1
+        fi
     fi
 fi
 
