@@ -38,7 +38,25 @@ npm install express-validator express-rate-limit canvas @types/express-validator
 - Windows: `install-deps.bat`
 - PowerShell: `install-deps.ps1`
 
-### 3. Fix TypeScript Errors
+### 3. Configure Database Connection
+**Create .env file:**
+```bash
+# Windows PowerShell
+.\setup-env.ps1
+
+# Or manually create .env file with:
+DATABASE_URL="postgresql://username:password@localhost:5432/7oumaligue_db"
+JWT_SECRET="your-super-secret-jwt-key"
+PORT=3001
+NODE_ENV=development
+```
+
+**Test database connection:**
+```bash
+node test-database.js
+```
+
+### 4. Fix TypeScript Errors
 The following files have been updated to fix implicit `any` type errors:
 
 - `src/routes/liveMatch.routes.ts` - Added type annotations for validation errors
@@ -48,7 +66,14 @@ The following files have been updated to fix implicit `any` type errors:
 - `src/routes/tournament.routes.ts` - Added type annotations for validation errors and custom validation function
 - `src/server.ts` - Added type annotations for rate limiter functions
 
-### 4. Verify the Fix
+### 5. Run Prisma Migrations
+After configuring the database:
+```bash
+npx prisma generate
+npx prisma migrate deploy
+```
+
+### 6. Verify the Fix
 After installing dependencies, run:
 ```bash
 npm run build
@@ -56,7 +81,7 @@ npm run build
 
 The build should now complete successfully without TypeScript errors.
 
-### 5. Alternative: Use the Fix Script
+### 7. Alternative: Use the Fix Script
 You can also run the automated fix script:
 ```bash
 node fix-typescript-errors.js
@@ -75,9 +100,32 @@ node fix-typescript-errors.js
 - `(endDate: any, { req }: any) =>` for custom validation
 - `(req: any, res: any) =>` for rate limiter handlers
 
+## Database Setup Options
+
+### Option 1: Local PostgreSQL
+1. Install PostgreSQL
+2. Create database: `createdb 7oumaligue_db`
+3. Update DATABASE_URL in .env
+
+### Option 2: Cloud Database (Recommended)
+- **Supabase**: Free PostgreSQL hosting
+- **Railway**: Easy deployment
+- **PlanetScale**: MySQL with Prisma support
+- **Neon**: Serverless PostgreSQL
+
+### Option 3: SQLite (Development only)
+Update schema.prisma:
+```prisma
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+```
+
 ## Notes
 - The `any` type annotations are used to resolve immediate build issues
 - For production, consider adding proper type definitions
 - The canvas dependency is used for player card generation
 - Rate limiting is configured but can be disabled in development
-- **Important**: Canvas requires system dependencies on Linux systems 
+- **Important**: Canvas requires system dependencies on Linux systems
+- **Important**: DATABASE_URL must be properly configured for Prisma to work 
