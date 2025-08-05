@@ -24,6 +24,7 @@
     "check-startup": "node check-startup-command.js",
     "deploy-fix": "bash deploy-fix.sh",
     "deploy-windows": "bash deploy-windows.sh",
+    "build-deploy": "node build-for-deployment.js",
     "configure-azure": "node configure-azure.js",
     "test-paths": "node test-explicit-paths.js",
     "fix-prisma": "node fix-prisma.js",
