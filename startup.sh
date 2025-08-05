@@ -82,7 +82,7 @@ fi
 echo "✅ Build vérifié"
 
 echo "🚀 Démarrage de l'application..."
-echo "🎯 Utilisation de start-server.js pour contourner les conflits..."
+echo "🎯 Utilisation de npm start pour compilation et démarrage..."
 
-# Démarrer avec start-server.js qui gère les ports et l'écoute réseau
-exec node start-server.js 
+# Démarrer avec npm start qui compile TypeScript et lance le serveur
+exec npm start 

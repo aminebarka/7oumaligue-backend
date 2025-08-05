@@ -9,7 +9,7 @@
     "dev:simple": "node start-dev.js",
     "build": "tsc",
     "build:azure": "tsc && echo '✅ Build completed for Azure deployment'",
-    "start": "node dist/src/server.js",
+    "start": "tsc && node dist/src/server.js",
     "check-build": "node check-build.js",
     "verify-deployment": "node verify-deployment.js",
     "pre-deploy-test": "bash pre-deploy-test.sh",
@@ -20,6 +20,7 @@
     "check-azure": "node check-azure-config.js",
     "test-docker": "bash test-docker-azure.sh",
     "analyze-logs": "node analyze-azure-logs.js",
+    "test-deps": "node test-dependencies.js",
     "start:azure": "tsc && node dist/src/server.js",
     "start:prod": "node dist/src/server.js",
     "pm2:start": "pm2 start ecosystem.config.js",
@@ -80,6 +81,8 @@
     "nodemailer": "^7.0.5",
     "sharp": "^0.34.3",
     "stripe": "^18.4.0",
+    "typescript": "^5.3.3",
+    "ts-node": "^10.9.2",
     "winston": "^3.11.0"
   },
   "devDependencies": {
