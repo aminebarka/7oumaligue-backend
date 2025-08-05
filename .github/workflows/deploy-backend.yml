@@ -1,4 +1,4 @@
-name: Deploy Backend to Azure
+name: Deploy Node.js to Azure
 
 on:
   push:
@@ -6,42 +6,39 @@ on:
     paths:
       - 'backend/**'
 
-env:
-  AZURE_WEBAPP_NAME: 7oumaligue-backend
-  AZURE_RESOURCE_GROUP: 7oumaligue-rg
-  CONTAINER_REGISTRY: 7oumaligue.azurecr.io
-  IMAGE_NAME: 7oumaligue-backend
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment: production
+    
     steps:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
-
-    - name: Docker Login
-      uses: azure/docker-login@v1
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
       with:
-        login-server: ${{ env.CONTAINER_REGISTRY }}
-        username: ${{ secrets.REGISTRY_USERNAME }}
-        password: ${{ secrets.REGISTRY_PASSWORD }}
+        node-version: '18.x'
+        cache: 'npm'
 
-    - name: Build and Push
-      uses: docker/build-push-action@v4
-      with:
-        context: ./backend
-        file: ./backend/Dockerfile
-        push: true
-        tags: |
-          ${{ env.CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          ${{ env.CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+    - name: Install dependencies
+      working-directory: ./backend
+      run: |
+        npm ci
+        npm run postinstall
 
-    - name: Deploy to Azure
+    - name: Build project
+      working-directory: ./backend
+      run: npm run build
+
+    - name: Run Prisma generate
+      working-directory: ./backend
+      run: npx prisma generate
+
+    - name: Upload to Azure
       uses: azure/webapps-deploy@v2
       with:
-        app-name: ${{ env.AZURE_WEBAPP_NAME }}
-        resource-group: ${{ env.AZURE_RESOURCE_GROUP }}
-        images: ${{ env.CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} 
+        app-name: '7oumaligue-backend'
+        slot-name: 'Production'
+        package: ./backend
+        publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_F2EFC73E8FD9481CA208D4847CDB20A2 }}
