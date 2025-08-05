@@ -28,7 +28,7 @@ jobs:
 
       - name: Create .env file from secrets
         run: |
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > .env
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
           echo "PORT=3001" >> .env
           echo "NODE_ENV=production" >> .env
@@ -36,7 +36,7 @@ jobs:
           echo "RATE_LIMIT_MAX_REQUESTS=100" >> .env
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Generate Prisma client
         run: npx prisma generate
@@ -68,5 +68,5 @@ jobs:
         with:
           app-name: '7oumaligue-backend'
           slot-name: 'Production'
-          package: .
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_F2EFC73E8FD9481CA208D4847CDB20A2 }}
+          package: .

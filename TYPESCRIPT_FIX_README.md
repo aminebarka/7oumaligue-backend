@@ -38,7 +38,29 @@ npm install express-validator express-rate-limit canvas @types/express-validator
 - Windows: `install-deps.bat`
 - PowerShell: `install-deps.ps1`
 
-### 3. Configure Database Connection
+### 3. Fix Database Connection Issue
+**If you get "DATABASE_URL resolved to an empty string" error:**
+
+**Option A: Use the fix script**
+```bash
+node fix-database-connection.js
+```
+
+**Option B: Use PowerShell script**
+```powershell
+.\create-env.ps1
+```
+
+**Option C: Manual fix**
+Create/update `.env` file with:
+```env
+DATABASE_URL="postgresql://ftms_user:password@localhost:5432/ftms_db"
+JWT_SECRET="your-super-secret-jwt-key"
+PORT=3001
+NODE_ENV=development
+```
+
+### 4. Configure Database Connection
 **Create .env file:**
 ```bash
 # Windows PowerShell
@@ -56,7 +78,7 @@ NODE_ENV=development
 node test-database.js
 ```
 
-### 4. Fix TypeScript Errors
+### 5. Fix TypeScript Errors
 The following files have been updated to fix implicit `any` type errors:
 
 - `src/routes/liveMatch.routes.ts` - Added type annotations for validation errors
@@ -66,14 +88,14 @@ The following files have been updated to fix implicit `any` type errors:
 - `src/routes/tournament.routes.ts` - Added type annotations for validation errors and custom validation function
 - `src/server.ts` - Added type annotations for rate limiter functions
 
-### 5. Run Prisma Migrations
+### 6. Run Prisma Migrations
 After configuring the database:
 ```bash
 npx prisma generate
 npx prisma migrate deploy
 ```
 
-### 6. Verify the Fix
+### 7. Verify the Fix
 After installing dependencies, run:
 ```bash
 npm run build
@@ -81,7 +103,7 @@ npm run build
 
 The build should now complete successfully without TypeScript errors.
 
-### 7. Alternative: Use the Fix Script
+### 8. Alternative: Use the Fix Script
 You can also run the automated fix script:
 ```bash
 node fix-typescript-errors.js
@@ -122,10 +144,24 @@ datasource db {
 }
 ```
 
+## Troubleshooting Database Issues
+
+### Common DATABASE_URL Errors:
+1. **Empty string**: `.env` file missing or DATABASE_URL not set
+2. **Connection refused**: Database server not running
+3. **Authentication failed**: Wrong username/password
+4. **Database does not exist**: Database not created
+
+### Quick Fix Scripts:
+- `fix-database-connection.js` - Automatic fix for .env issues
+- `create-env.ps1` - PowerShell script for Windows
+- `test-database.js` - Test database connection
+
 ## Notes
 - The `any` type annotations are used to resolve immediate build issues
 - For production, consider adding proper type definitions
 - The canvas dependency is used for player card generation
 - Rate limiting is configured but can be disabled in development
 - **Important**: Canvas requires system dependencies on Linux systems
-- **Important**: DATABASE_URL must be properly configured for Prisma to work 
+- **Important**: DATABASE_URL must be properly configured for Prisma to work
+- **Important**: .env file must be in the backend directory root 
