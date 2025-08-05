@@ -33,43 +33,36 @@ echo "   NODE_ENV: ${NODE_ENV:-non défini}"
 echo "   PORT: ${PORT:-non défini}"
 echo "   NODE_OPTIONS: ${NODE_OPTIONS:-désactivé}"
 
-echo "📦 Vérification des dépendances npm..."
+echo "📦 Installation des dépendances npm..."
 if [ -f "package.json" ]; then
     echo "✅ package.json trouvé"
     
-    # Installer les dépendances si node_modules n'existe pas
-    if [ ! -d "node_modules" ]; then
-        echo "📦 Installation des dépendances npm..."
-        npm install
-    else
-        echo "✅ node_modules existe déjà"
-    fi
+    # Installer TOUTES les dépendances (incluant devDependencies)
+    echo "📦 Installation complète des dépendances (incluant devDependencies)..."
+    npm install --include=dev
     
-    # Installer TypeScript globalement
-    echo "🔧 Installation de TypeScript globalement..."
-    npm install -g typescript@latest
-    
-    # Vérifier l'installation de TypeScript
-    if command -v tsc &> /dev/null; then
-        echo "✅ TypeScript installé globalement"
-        echo "   Version: $(tsc --version)"
+    # Vérifier que TypeScript est installé localement
+    if [ -f "./node_modules/.bin/tsc" ]; then
+        echo "✅ TypeScript installé localement"
+        echo "   Version: $(./node_modules/.bin/tsc --version)"
     else
-        echo "❌ TypeScript non trouvé, installation locale..."
-        npm install typescript@latest
+        echo "❌ TypeScript non trouvé localement"
+        echo "🔧 Installation explicite de TypeScript..."
+        npm install typescript@latest --include=dev
     fi
 else
     echo "❌ package.json non trouvé"
     exit 1
 fi
 
-echo "🔨 Vérification du build..."
+echo "🔨 Build avec chemin explicite..."
 if [ ! -f "dist/src/server.js" ]; then
     echo "⚠️ dist/src/server.js manquant, build en cours..."
     
-    # Utiliser npx pour s'assurer que tsc est disponible
-    npx tsc
+    # Utiliser le chemin explicite pour tsc
+    ./node_modules/.bin/tsc
     if [ ! -f "dist/src/server.js" ]; then
-        echo "❌ Build échoué"
+        echo "❌ Build échoué avec chemin explicite"
         echo "🔍 Tentative avec npm run build..."
         npm run build
         if [ ! -f "dist/src/server.js" ]; then
@@ -78,8 +71,7 @@ if [ ! -f "dist/src/server.js" ]; then
         fi
     fi
 fi
-
-echo "✅ Build vérifié"
+echo "✅ Build vérifié avec chemin explicite"
 
 echo "🚀 Démarrage de l'application..."
 echo "🎯 Utilisation de npm start pour compilation et démarrage..."
