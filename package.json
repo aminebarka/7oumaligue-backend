@@ -4,13 +4,15 @@
   "description": "Backend API for 7ouma Ligue mini-football management system",
   "main": "dist/src/server.js",
   "scripts": {
-    "postinstall": "prisma generate",
+    "postinstall": "node check-dependencies.js",
     "dev": "kill-port 5000 && nodemon --exec ts-node --files src/server.ts",
     "dev:simple": "node start-dev-robust.js",
     "build": "node ./node_modules/typescript/bin/tsc",
     "build:azure": "node ./node_modules/typescript/bin/tsc && echo '✅ Build completed for Azure deployment'",
     "start": "node start-prod.js",
     "azure:start": "node start-prod.js",
+    "azure:predeploy": "npm install --production=false && npm run build && npx prisma generate",
+    "install:full": "npm install --production=false && npm run postinstall",
     "check-build": "node check-build.js",
     "verify-deployment": "node verify-deployment.js",
     "pre-deploy-test": "bash pre-deploy-test.sh",
@@ -71,7 +73,13 @@
     "test:draw:real": "node test-draw-real.js",
     "test:deployment": "node test-deployment-fix.js",
     "test:startup": "node test-startup.js",
-    "deploy:check": "node deploy-to-azure.js"
+    "deploy:check": "node deploy-to-azure.js",
+    "diagnose:deps": "node diagnose-dependencies.js",
+    "check-deps": "node check-dependencies.js",
+    "fix-deps": "node fix-dependencies.js",
+    "test:azure-solution": "node test-azure-solution.js",
+    "verify:solution": "node verify-solution.js",
+    "cleanup:old": "node cleanup-old-scripts.js"
   },
   "keywords": [
     "football",

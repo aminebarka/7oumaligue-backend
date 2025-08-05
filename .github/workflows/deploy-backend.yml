@@ -21,19 +21,12 @@ jobs:
         node-version: '18.x'
         cache: 'npm'
 
-    - name: Install dependencies
+    - name: Install and build
       working-directory: ./backend
       run: |
         npm ci
-        npm run postinstall
-
-    - name: Build project
-      working-directory: ./backend
-      run: npm run build
-
-    - name: Run Prisma generate
-      working-directory: ./backend
-      run: npx prisma generate
+        npm run install:full
+        npm run build
 
     - name: Upload to Azure
       uses: azure/webapps-deploy@v2
