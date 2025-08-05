@@ -16,6 +16,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Create .env file from secrets
+        run: echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > .env
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
