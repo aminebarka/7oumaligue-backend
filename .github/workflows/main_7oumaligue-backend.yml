@@ -20,6 +20,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libcairo2-dev libjpeg-dev libpango1.0-dev libgif-dev build-essential libpng-dev
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
@@ -33,6 +34,7 @@ jobs:
           echo "NODE_ENV=production" >> .env
           echo "RATE_LIMIT_WINDOW_MS=900000" >> .env
           echo "RATE_LIMIT_MAX_REQUESTS=100" >> .env
+
       - name: Install dependencies
         run: npm install
 
@@ -43,7 +45,11 @@ jobs:
         run: npm run build
 
       - name: Migrate database
-        run: npx prisma migrate deploy
+        run: |
+          set -a
+          source .env
+          set +a
+          npx prisma migrate deploy
 
       - name: Upload artifact for deployment
         uses: actions/upload-artifact@v4
