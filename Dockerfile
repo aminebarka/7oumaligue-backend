@@ -29,5 +29,5 @@ RUN npx prisma generate
 ENV PORT=8080
 EXPOSE $PORT
 
-# Commande de démarrage
+# Commande de dém arrage
 CMD ["node", "dist/src/server.js"]
