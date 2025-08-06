@@ -27,8 +27,7 @@ console.log('🔍 DEBUG - process.env.PORT:', process.env.PORT)
 console.log('🔍 DEBUG - NODE_ENV:', process.env.NODE_ENV)
 
 const app = express()
-const PORT = process.env.PORT || 5000
-
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 8080;
 console.log('🚀 DEBUG - Final PORT value:', PORT)
 
 // CORS middleware personnalisé - DOIT être en premier
