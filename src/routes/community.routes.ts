@@ -244,7 +244,7 @@ router.get('/votes', async (req, res) => {
 
     // Enrichir avec les détails des cibles
     const enrichedVotes = await Promise.all(
-      votes.map(async (vote) => {
+      votes.map(async (vote: any) => {
         let target
         if (vote.targetType === 'player') {
           target = await prisma.player.findUnique({

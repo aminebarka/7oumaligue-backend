@@ -31,6 +31,9 @@ const PORT = process.env.PORT || 8080;
 const HOST = process.env.HOST || '0.0.0.0';
 console.log('🚀 DEBUG - Final PORT value:', PORT)
 
+app.get('/ping', (req, res) => {
+  res.status(200).send('pong');
+});
 // CORS middleware personnalisé - DOIT être en premier
 app.use(corsMiddleware)
 
@@ -41,7 +44,8 @@ app.use(
       "http://localhost:5173",
       "http://localhost:5174",
       "http://127.0.0.1:5173",
-      "http://127.0.0.1:5174"
+      "http://127.0.0.1:5174",
+      "https://gray-tree-0ae561303.2.azurestaticapps.net"
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
@@ -197,36 +201,26 @@ app.use("*", (req, res) => {
 app.use(errorHandler)
 
 // Start server with database connection
+// Remplacez la fonction startServer par :
 const startServer = async () => {
   try {
-    // Connect to database first
-    await connectDatabase()
+    // Connect to database in background
+    connectDatabase().then(() => {
+      logger.info("✅ Database connected");
+    }).catch(error => {
+      logger.error("❌ Database connection failed", error);
+    });
     
-    // Determine host based on environment
-    const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost'
-    const port = Number(PORT)
+    const host = process.env.HOST || '0.0.0.0';
+    const port = Number(process.env.PORT) || 8080;
     
-    // Start the server
-    console.log('🎯 DEBUG - About to start server on', host + ':' + port)
     app.listen(port, host, () => {
-      console.log(`✅ Server running on ${host}:${port}`)
-      logger.info(`🚀 Server running on ${host}:${port}`)
-      logger.info(`📊 Environment: ${process.env.NODE_ENV || "development"}`)
-      logger.info(`🌐 CORS enabled for: ${process.env.FRONTEND_URL || "http://localhost:5173"}`)
-      
-      // Debug réseau - affiche toutes les interfaces
-      console.log(`🖥️  Network interfaces:`)
-      Object.entries(os.networkInterfaces()).forEach(([name, interfaces]) => {
-        interfaces?.forEach(info => {
-          if (info.family === 'IPv4') {
-            console.log(`  - ${name}: ${info.address} (${info.family})`)
-          }
-        })
-      })
-    })
+      logger.info(`🚀 Server running on ${host}:${port}`);
+      // (Gardez le reste du logging ici)
+    });
   } catch (error) {
-    logger.error("❌ Failed to start server:", error)
-    process.exit(1)
+    logger.error("❌ Failed to start server:", error);
+    process.exit(1);
   }
 }
 

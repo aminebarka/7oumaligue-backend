@@ -8,7 +8,6 @@ const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const dotenv_1 = __importDefault(require("dotenv"));
-const os_1 = __importDefault(require("os"));
 const logger_1 = require("./utils/logger");
 const error_middleware_1 = require("./middleware/error.middleware");
 const cors_middleware_1 = require("./middleware/cors.middleware");
@@ -28,13 +27,17 @@ const app = (0, express_1.default)();
 const PORT = process.env.PORT || 8080;
 const HOST = process.env.HOST || '0.0.0.0';
 console.log('🚀 DEBUG - Final PORT value:', PORT);
+app.get('/ping', (req, res) => {
+    res.status(200).send('pong');
+});
 app.use(cors_middleware_1.corsMiddleware);
 app.use((0, cors_1.default)({
     origin: [
         "http://localhost:5173",
         "http://localhost:5174",
         "http://127.0.0.1:5173",
-        "http://127.0.0.1:5174"
+        "http://127.0.0.1:5174",
+        "https://gray-tree-0ae561303.2.azurestaticapps.net"
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
@@ -163,23 +166,15 @@ app.use("*", (req, res) => {
 app.use(error_middleware_1.errorHandler);
 const startServer = async () => {
     try {
-        await (0, database_1.connectDatabase)();
-        const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
-        const port = Number(PORT);
-        console.log('🎯 DEBUG - About to start server on', host + ':' + port);
+        (0, database_1.connectDatabase)().then(() => {
+            logger_1.logger.info("✅ Database connected");
+        }).catch(error => {
+            logger_1.logger.error("❌ Database connection failed", error);
+        });
+        const host = process.env.HOST || '0.0.0.0';
+        const port = Number(process.env.PORT) || 8080;
         app.listen(port, host, () => {
-            console.log(`✅ Server running on ${host}:${port}`);
             logger_1.logger.info(`🚀 Server running on ${host}:${port}`);
-            logger_1.logger.info(`📊 Environment: ${process.env.NODE_ENV || "development"}`);
-            logger_1.logger.info(`🌐 CORS enabled for: ${process.env.FRONTEND_URL || "http://localhost:5173"}`);
-            console.log(`🖥️  Network interfaces:`);
-            Object.entries(os_1.default.networkInterfaces()).forEach(([name, interfaces]) => {
-                interfaces?.forEach(info => {
-                    if (info.family === 'IPv4') {
-                        console.log(`  - ${name}: ${info.address} (${info.family})`);
-                    }
-                });
-            });
         });
     }
     catch (error) {

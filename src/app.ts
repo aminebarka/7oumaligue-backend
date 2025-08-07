@@ -1,4 +1,3 @@
-import { User } from '@prisma/client';
 import { Prisma } from '@prisma/client';
 
 interface JwtPayload {
@@ -39,7 +38,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5174', 'http://localhost:5000', 'http://localhost:5173'],
+  origin: ['http://localhost:5174', 'http://localhost:5000', 'http://localhost:5173',"https://gray-tree-0ae561303.2.azurestaticapps.net"],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']

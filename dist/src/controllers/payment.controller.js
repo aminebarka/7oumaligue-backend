@@ -150,9 +150,9 @@ class PaymentController {
                 totalTransactions: transactions.length,
                 totalAmount: transactions.reduce((sum, t) => sum + t.amount, 0),
                 totalCommission: transactions.reduce((sum, t) => sum + t.commission, 0),
-                completedTransactions: transactions.filter(t => t.status === 'completed').length,
-                pendingTransactions: transactions.filter(t => t.status === 'pending').length,
-                failedTransactions: transactions.filter(t => t.status === 'failed').length,
+                completedTransactions: transactions.filter((t) => t.status === 'completed').length,
+                pendingTransactions: transactions.filter((t) => t.status === 'pending').length,
+                failedTransactions: transactions.filter((t) => t.status === 'failed').length,
                 paymentMethods: this.groupByPaymentMethod(transactions),
                 monthlyStats: this.getMonthlyStats(transactions)
             };

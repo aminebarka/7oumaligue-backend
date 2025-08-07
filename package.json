@@ -7,7 +7,7 @@
     "dev": "nodemon --exec ts-node --files src/server.ts",
     "build": "tsc",
     "prestart": "npm run build",
-    "start": "NODE_ENV=production HOST=0.0.0.0 PORT=8080 node dist/src/server.js",
+    "start": "node dist/src/server.js" ,
     "azure:predeploy": "npm install --production=false && npm run build && npx prisma generate && npx prisma migrate deploy",
     "migrate": "prisma migrate dev",
     "generate": "prisma generate",

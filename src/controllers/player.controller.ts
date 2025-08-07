@@ -277,7 +277,7 @@ export const updatePlayer = async (req: Request, res: Response) => {
           where: { id: currentPlayer.teamId },
         })
         if (oldTeam) {
-          const updatedPlayers = oldTeam.players.filter((pid) => pid !== id)
+          const updatedPlayers = oldTeam.players.filter((pid: string) => pid !== id)
           await prisma.team.update({
             where: { id: currentPlayer.teamId },
             data: { players: updatedPlayers },
@@ -329,7 +329,7 @@ export const deletePlayer = async (req: Request, res: Response) => {
         where: { id: player.teamId },
       })
       if (team) {
-        const updatedPlayers = team.players.filter((pid) => pid !== id)
+        const updatedPlayers = team.players.filter((pid: string) => pid !== id)
         await prisma.team.update({
           where: { id: player.teamId },
           data: { players: updatedPlayers },

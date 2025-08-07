@@ -26,16 +26,13 @@ jobs:
         with:
           node-version: '20.x'
 
-      - name: Create .env file from secrets
+      - name: Create .env 
         run: |
-         echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > .env
-         echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-         echo "NODE_ENV=production" >> .env
-         echo "DEBUG=*" >> .env  
-         echo "PORT=8080" >> .env
-         echo "HOST=0.0.0.0" >> .env
-         echo "RATE_LIMIT_WINDOW_MS=900000" >> .env
-         echo "RATE_LIMIT_MAX_REQUESTS=100" >> .env
+         cat <<EOF > .env
+         DATABASE_URL="${{ secrets.DATABASE_URL }}"
+         JWT_SECRET="${{ secrets.JWT_SECRET }}"
+         # Supprimez PORT et HOST ici
+         EOF
 
       - name: Install dependencies
         run: npm install

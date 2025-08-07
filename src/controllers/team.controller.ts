@@ -281,7 +281,7 @@ export const deleteTeam = async (req: Request, res: Response) => {
 
     console.log("📊 Équipe dans des tournois:", tournamentTeams.length);
 
-    const activeTournaments = tournamentTeams.filter((tt) => tt.tournament.status === "active");
+    const activeTournaments = tournamentTeams.filter((tt: any) => tt.tournament.status === "active");
 
     if (activeTournaments.length > 0 && !force) {
       console.log("❌ Équipe dans un tournoi actif:", activeTournaments);

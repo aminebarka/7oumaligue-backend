@@ -21,7 +21,7 @@ const error_middleware_1 = require("./middleware/error.middleware");
 const apiResponse_1 = require("./utils/apiResponse");
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)({
-    origin: ['http://localhost:5174', 'http://localhost:5000', 'http://localhost:5173'],
+    origin: ['http://localhost:5174', 'http://localhost:5000', 'http://localhost:5173', "https://gray-tree-0ae561303.2.azurestaticapps.net"],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']

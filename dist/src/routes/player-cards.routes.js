@@ -261,7 +261,7 @@ async function getPlayerAchievements(playerId) {
         achievements.milestones.push({ type: 'assists', value: 25, description: '25 passes décisives' });
     if (totalMatches >= 50)
         achievements.milestones.push({ type: 'matches', value: 50, description: '50 matchs joués' });
-    achievements.trophies = badges.map(badge => ({
+    achievements.trophies = badges.map((badge) => ({
         type: 'badge',
         name: badge.badgeName,
         description: badge.description,

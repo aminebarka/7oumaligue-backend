@@ -34,7 +34,7 @@ router.post('/tournaments/:id/draw', authenticateToken, async (req, res) => {
       return badRequest(res, 'Le tirage a déjà été effectué pour ce tournoi')
     }
 
-    const teams = tournament.tournamentTeams.map(tt => tt.team)
+    const teams = tournament.tournamentTeams.map((tt: any) => tt.team)
     if (teams.length < numberOfGroups * 2) {
       return badRequest(res, 'Nombre d\'équipes insuffisant pour le nombre de groupes demandé')
     }
@@ -151,17 +151,17 @@ router.get('/tournaments/:id/draw-animation', authMiddleware, async (req, res) =
         name: tournament.name,
         logo: tournament.logo
       },
-      groups: tournament.groups.map(group => ({
+      groups: tournament.groups.map((group: any) => ({
         name: group.name,
-        teams: group.groupTeams.map(gt => ({
+        teams: group.groupTeams.map((gt: any) => ({
           id: gt.team.id,
           name: gt.team.name,
           logo: gt.team.logo
         }))
       })),
-      remainingTeams: tournament.tournamentTeams.map(tt => tt.team).filter(team => 
-        !tournament.groups.some(group => 
-          group.groupTeams.some(gt => gt.teamId === team.id)
+      remainingTeams: tournament.tournamentTeams.map((tt: any) => tt.team).filter((team: any) => 
+        !tournament.groups.some((group: any) =>
+          group.groupTeams.some((gt: any) => gt.teamId === team.id)
         )
       )
     }

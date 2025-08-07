@@ -41,7 +41,7 @@ router.get('/players/:id/card', async (req, res) => {
     }
 
     // Calculer les statistiques globales
-    const totalStats = player.playerStats.reduce((acc, stat) => ({
+    const totalStats = player.playerStats.reduce((acc: any, stat: any) => ({
       goals: acc.goals + stat.goals,
       assists: acc.assists + stat.assists,
       matches: acc.matches + stat.matchesPlayed,
@@ -129,7 +129,7 @@ router.get('/players/:slug', async (req, res) => {
     }
 
     // Calculer les statistiques
-    const totalStats = player.playerStats.reduce((acc, stat) => ({
+    const totalStats = player.playerStats.reduce((acc: any, stat: any) => ({
       goals: acc.goals + stat.goals,
       assists: acc.assists + stat.assists,
       matches: acc.matches + stat.matchesPlayed,
@@ -182,7 +182,7 @@ router.get('/players/:id/reputation', async (req, res) => {
       return notFound(res, 'Joueur non trouvé')
     }
 
-    const totalStats = player.playerStats.reduce((acc, stat) => ({
+    const totalStats = player.playerStats.reduce((acc: any, stat: any) => ({
       goals: acc.goals + stat.goals,
       assists: acc.assists + stat.assists,
       matches: acc.matches + stat.matchesPlayed,
@@ -296,9 +296,9 @@ async function getPlayerAchievements(playerId: number): Promise<any> {
   }
 
   // Calculer les records
-  const totalGoals = stats.reduce((sum, stat) => sum + stat.goals, 0)
-  const totalAssists = stats.reduce((sum, stat) => sum + stat.assists, 0)
-  const totalMatches = stats.reduce((sum, stat) => sum + stat.matchesPlayed, 0)
+  const totalGoals = stats.reduce((sum: number, stat: any) => sum + stat.goals, 0)
+  const totalAssists = stats.reduce((sum: number, stat: any) => sum + stat.assists, 0)
+  const totalMatches = stats.reduce((sum: number, stat: any) => sum + stat.matchesPlayed, 0)
 
   if (totalGoals >= 50) achievements.milestones.push({ type: 'goals', value: 50, description: '50 buts marqués' })
   if (totalGoals >= 100) achievements.milestones.push({ type: 'goals', value: 100, description: '100 buts marqués' })
@@ -306,7 +306,7 @@ async function getPlayerAchievements(playerId: number): Promise<any> {
   if (totalMatches >= 50) achievements.milestones.push({ type: 'matches', value: 50, description: '50 matchs joués' })
 
   // Ajouter les badges comme trophées
-  achievements.trophies = badges.map(badge => ({
+  achievements.trophies = badges.map((badge: any) => ({
     type: 'badge',
     name: badge.badgeName,
     description: badge.description,
