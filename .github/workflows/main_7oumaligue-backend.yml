@@ -31,6 +31,7 @@ jobs:
          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > .env
          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
          echo "NODE_ENV=production" >> .env
+         echo "DEBUG=*" >> .env  
          echo "PORT=8080" >> .env
          echo "HOST=0.0.0.0" >> .env
          echo "RATE_LIMIT_WINDOW_MS=900000" >> .env
