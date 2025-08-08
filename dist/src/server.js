@@ -168,11 +168,11 @@ app.use("*", (req, res) => {
 });
 app.use(error_middleware_1.errorHandler);
 const startServer = async () => {
-    const port = Number(process.env.PORT) || 8080;
-    const server = app.listen(port, '0.0.0.0', () => {
-        console.log(`✅ Server running on 0.0.0.0:${port}`);
-        logger_1.logger.info(`🚀 Server running on 0.0.0.0:${port}`);
-    });
+  const PORT = Number(process.env.PORT) || 8080;
+
+  const server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`✅ Server running on 0.0.0.0:${PORT}`);
+  });
     try {
         await (0, database_1.connectDatabase)();
         logger_1.logger.info("✅ Database connected");
