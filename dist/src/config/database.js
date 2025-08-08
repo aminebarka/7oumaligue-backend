@@ -32,7 +32,7 @@ function loadEnvVars() {
     if (!process.env.DATABASE_URL) {
         logger_1.logger.error('❌ CRITICAL: DATABASE_URL is not defined in environment variables');
         logger_1.logger.error('❌ Available environment keys:', Object.keys(process.env).join(', '));
-        process.exit(1);
+        logger_1.logger.warn('⚠️ Server will start without database connection');
     }
 }
 loadEnvVars();
@@ -91,6 +91,10 @@ exports.prisma.$on("warn", (e) => {
 const connectDatabase = async () => {
     const maxRetries = 5;
     const retryDelay = 2000;
+    if (!process.env.DATABASE_URL) {
+        logger_1.logger.warn("⚠️ No DATABASE_URL provided, skipping database connection");
+        return;
+    }
     if (!ensurePrismaInitialized()) {
         logger_1.logger.error("❌ Prisma client not initialized. Running prisma generate...");
         try {
@@ -100,7 +104,7 @@ const connectDatabase = async () => {
         }
         catch (error) {
             logger_1.logger.error("❌ Failed to regenerate Prisma client:", error);
-            process.exit(1);
+            return;
         }
     }
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -112,8 +116,9 @@ const connectDatabase = async () => {
         catch (error) {
             logger_1.logger.error(`❌ Database connection attempt ${attempt} failed:`, error);
             if (attempt === maxRetries) {
-                logger_1.logger.error("❌ All database connection attempts failed. Exiting...");
-                process.exit(1);
+                logger_1.logger.error("❌ All database connection attempts failed.");
+                logger_1.logger.warn("⚠️ Server will continue without database connection");
+                return;
             }
             logger_1.logger.info(`🔄 Retrying database connection in ${retryDelay}ms...`);
             await new Promise(resolve => setTimeout(resolve, retryDelay));

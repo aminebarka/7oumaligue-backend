@@ -13,8 +13,8 @@ COPY prisma ./prisma
 # 2. Installer les dépendances
 RUN npm install --production
 
-# 3. Copier le fichier .env (s'il existe)
-COPY .env .
+# 3. Copier le fichier .env (s'il existe) - optionnel
+COPY .env* ./
 
 # 4. Générer le client Prisma
 RUN npx prisma generate
@@ -33,6 +33,18 @@ ENV PORT=8080
 ENV HOST=0.0.0.0
 ENV NODE_ENV=production
 
+# Créer un utilisateur non-root pour la sécurité
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nodejs -u 1001
+
+# Changer la propriété des fichiers
+RUN chown -R nodejs:nodejs /app
+USER nodejs
+
 EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node healthcheck.js
 
 CMD ["node", "dist/src/server.js"]

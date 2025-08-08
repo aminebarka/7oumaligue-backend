@@ -242,6 +242,7 @@ const startServer = async () => {
     logger.info("✅ Database connected");
   } catch (error) {
     logger.error("❌ Database connection failed", error);
+    logger.info("⚠️ Server will continue without database connection");
   }
 
   // Gestion propre des arrêts

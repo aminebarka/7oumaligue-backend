@@ -1,11 +1,9 @@
-#!/bin/bash
-
-echo "🚀 Starting 7oumaligue backend..."
+Write-Host "🚀 Starting 7oumaligue backend..." -ForegroundColor Green
 
 # Check if .env file exists, if not create it
-if [ ! -f .env ]; then
-    echo "📝 Creating .env file..."
-    cat > .env << EOF
+if (-not (Test-Path ".env")) {
+    Write-Host "📝 Creating .env file..." -ForegroundColor Yellow
+    @"
 # Database Configuration
 DATABASE_URL="postgresql://postgres:password@localhost:5432/7oumaligue_db"
 
@@ -31,26 +29,26 @@ CORS_ORIGINS="http://localhost:5173,http://localhost:5174,http://127.0.0.1:5173,
 
 # Logging
 LOG_LEVEL=info
-EOF
-    echo "✅ .env file created"
-else
-    echo "✅ .env file already exists"
-fi
+"@ | Out-File -FilePath ".env" -Encoding UTF8
+    Write-Host "✅ .env file created" -ForegroundColor Green
+} else {
+    Write-Host "✅ .env file already exists" -ForegroundColor Green
+}
 
 # Install dependencies if node_modules doesn't exist
-if [ ! -d "node_modules" ]; then
-    echo "📦 Installing dependencies..."
+if (-not (Test-Path "node_modules")) {
+    Write-Host "📦 Installing dependencies..." -ForegroundColor Yellow
     npm install
-fi
+}
 
 # Generate Prisma client
-echo "🔧 Generating Prisma client..."
+Write-Host "🔧 Generating Prisma client..." -ForegroundColor Yellow
 npx prisma generate
 
 # Build the application
-echo "🏗️ Building application..."
+Write-Host "🏗️ Building application..." -ForegroundColor Yellow
 npm run build
 
 # Start the server
-echo "🚀 Starting server..."
-exec node dist/src/server.js
+Write-Host "🚀 Starting server..." -ForegroundColor Green
+node dist/src/server.js 

@@ -5,15 +5,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = __importDefault(require("dotenv"));
 const path_1 = __importDefault(require("path"));
-if (process.env.NODE_ENV === 'production') {
+const envPath = path_1.default.resolve(__dirname, '../../.env');
+dotenv_1.default.config({ path: envPath, override: true });
+if (process.env.WEBSITE_SITE_NAME || process.env.NODE_ENV === 'production') {
+    console.log('⚙️ Applying Azure production settings');
     process.env.PORT = '8080';
     process.env.HOST = '0.0.0.0';
 }
-const envPath = path_1.default.resolve(__dirname, '../.env');
-dotenv_1.default.config({ path: envPath });
-console.log('🔍 FORCED PORT:', process.env.PORT);
-console.log('🔍 FORCED HOST:', process.env.HOST);
-console.log('🔍 DATABASE_URL:', process.env.DATABASE_URL ? '***REDACTED***' : 'MISSING');
+console.log('✅ ENV LOADED:', {
+    PORT: process.env.PORT,
+    HOST: process.env.HOST,
+    NODE_ENV: process.env.NODE_ENV,
+    DATABASE_URL: process.env.DATABASE_URL ? '***REDACTED***' : 'MISSING',
+    WEBSITE_SITE_NAME: process.env.WEBSITE_SITE_NAME
+});
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
@@ -190,6 +195,7 @@ const startServer = async () => {
     }
     catch (error) {
         logger_1.logger.error("❌ Database connection failed", error);
+        logger_1.logger.info("⚠️ Server will continue without database connection");
     }
     process.on('SIGINT', () => {
         server.close(() => {
