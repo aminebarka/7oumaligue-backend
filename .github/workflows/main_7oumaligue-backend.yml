@@ -69,7 +69,7 @@ jobs:
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          startup-command: "npm run azure:start"
+          
           app-name: '7oumaligue-backend'
           slot-name: 'Production'
           package: .
