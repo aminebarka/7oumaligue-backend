@@ -104,7 +104,7 @@ async function main() {
                     tenantId: tenant.id,
                 },
             });
-            teamPlayers.push(player.id);
+            teamPlayers.push(String(player.id));
         }
         await prisma.team.update({
             where: { id: team.id },

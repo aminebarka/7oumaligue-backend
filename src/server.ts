@@ -1,8 +1,26 @@
+// Charger les variables d'environnement IMMÉDIATEMENT
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Forcer le port et l'hôte pour Azure
+if (process.env.NODE_ENV === 'production') {
+  process.env.PORT = '8080';
+  process.env.HOST = '0.0.0.0';
+}
+
+// Charger .env manuellement si nécessaire
+const envPath = path.resolve(__dirname, '../.env');
+dotenv.config({ path: envPath });
+
+// Log des variables critiques
+console.log('🔍 FORCED PORT:', process.env.PORT);
+console.log('🔍 FORCED HOST:', process.env.HOST);
+console.log('🔍 DATABASE_URL:', process.env.DATABASE_URL ? '***REDACTED***' : 'MISSING');
+
 import express from "express"
 import cors from "cors"
 import helmet from "helmet"
 import rateLimit from "express-rate-limit"
-import dotenv from "dotenv"
 import os from "os"
 import { logger } from "./utils/logger"
 import { errorHandler } from "./middleware/error.middleware"
@@ -19,21 +37,24 @@ const dataRoutes = require('./routes/data.routes').default;
 const liveMatchRoutes = require('./routes/liveMatch.routes').default;
 const stadiumRoutes = require('./routes/stadium.routes').default;
 
-// Load environment variables
-dotenv.config()
-
-// Debug: Log the PORT value
-console.log('🔍 DEBUG - process.env.PORT:', process.env.PORT)
-console.log('🔍 DEBUG - NODE_ENV:', process.env.NODE_ENV)
-
 const app = express()
-const PORT = process.env.PORT || 8080;
+const PORT = Number(process.env.PORT) || 8080;
 const HOST = process.env.HOST || '0.0.0.0';
+
+// Validation finale
+if (isNaN(PORT)) {
+  console.error('❌ INVALID PORT:', process.env.PORT);
+  process.exit(1);
+}
+
 console.log('🚀 DEBUG - Final PORT value:', PORT)
 
 app.get('/ping', (req, res) => {
   res.status(200).send('pong');
 });
+app.get('/robots933456.txt', (req, res) => {
+  res.status(200).send('Azure health check passed');
+}); 
 // CORS middleware personnalisé - DOIT être en premier
 app.use(corsMiddleware)
 
@@ -203,25 +224,29 @@ app.use(errorHandler)
 // Start server with database connection
 // Remplacez la fonction startServer par :
 const startServer = async () => {
+  // Démarrer le serveur IMMÉDIATEMENT
+  const port = Number(process.env.PORT) || 8080;
+  
+  const server = app.listen(port, '0.0.0.0', () => {
+    console.log(`✅ Server running on 0.0.0.0:${port}`);
+    logger.info(`🚀 Server running on 0.0.0.0:${port}`);
+  });
+
+  // Connexion DB en arrière-plan (ne bloque pas le démarrage)
   try {
-    // Connect to database in background
-    connectDatabase().then(() => {
-      logger.info("✅ Database connected");
-    }).catch(error => {
-      logger.error("❌ Database connection failed", error);
-    });
-    
-    const host = process.env.HOST || '0.0.0.0';
-    const port = Number(process.env.PORT) || 8080;
-    
-    app.listen(port, host, () => {
-      logger.info(`🚀 Server running on ${host}:${port}`);
-      // (Gardez le reste du logging ici)
-    });
+    await connectDatabase();
+    logger.info("✅ Database connected");
   } catch (error) {
-    logger.error("❌ Failed to start server:", error);
-    process.exit(1);
+    logger.error("❌ Database connection failed", error);
   }
+
+  // Gestion propre des arrêts
+  process.on('SIGINT', () => {
+    server.close(() => {
+      logger.info('Process terminated');
+      process.exit(0);
+    });
+  });
 }
 
 // Handle uncaught exceptions

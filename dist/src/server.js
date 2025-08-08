@@ -30,6 +30,9 @@ console.log('🚀 DEBUG - Final PORT value:', PORT);
 app.get('/ping', (req, res) => {
     res.status(200).send('pong');
 });
+app.get('/robots933456.txt', (req, res) => {
+    res.status(200).send('Azure health check passed');
+});
 app.use(cors_middleware_1.corsMiddleware);
 app.use((0, cors_1.default)({
     origin: [
@@ -165,22 +168,24 @@ app.use("*", (req, res) => {
 });
 app.use(error_middleware_1.errorHandler);
 const startServer = async () => {
+    const port = Number(process.env.PORT) || 8080;
+    const server = app.listen(port, '0.0.0.0', () => {
+        console.log(`✅ Server running on 0.0.0.0:${port}`);
+        logger_1.logger.info(`🚀 Server running on 0.0.0.0:${port}`);
+    });
     try {
-        (0, database_1.connectDatabase)().then(() => {
-            logger_1.logger.info("✅ Database connected");
-        }).catch(error => {
-            logger_1.logger.error("❌ Database connection failed", error);
-        });
-        const host = process.env.HOST || '0.0.0.0';
-        const port = Number(process.env.PORT) || 8080;
-        app.listen(port, host, () => {
-            logger_1.logger.info(`🚀 Server running on ${host}:${port}`);
-        });
+        await (0, database_1.connectDatabase)();
+        logger_1.logger.info("✅ Database connected");
     }
     catch (error) {
-        logger_1.logger.error("❌ Failed to start server:", error);
-        process.exit(1);
+        logger_1.logger.error("❌ Database connection failed", error);
     }
+    process.on('SIGINT', () => {
+        server.close(() => {
+            logger_1.logger.info('Process terminated');
+            process.exit(0);
+        });
+    });
 };
 process.on('uncaughtException', (error) => {
     logger_1.logger.error('❌ Uncaught Exception:', error);

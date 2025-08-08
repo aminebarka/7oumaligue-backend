@@ -1,15 +1,10 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.generatePlayerCard = generatePlayerCard;
 exports.generatePlayerCardSVG = generatePlayerCardSVG;
 const canvas_1 = require("canvas");
-const path_1 = __importDefault(require("path"));
 try {
-    (0, canvas_1.registerFont)(path_1.default.join(__dirname, '../assets/fonts/Roboto-Bold.ttf'), { family: 'Roboto-Bold' });
-    (0, canvas_1.registerFont)(path_1.default.join(__dirname, '../assets/fonts/Roboto-Regular.ttf'), { family: 'Roboto-Regular' });
+    console.log('Utilisation des polices par défaut');
 }
 catch (error) {
     console.log('Polices non trouvées, utilisation des polices par défaut');

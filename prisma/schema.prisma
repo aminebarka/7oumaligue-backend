@@ -12,10 +12,10 @@ model Tenant {
   name          String
   createdAt     DateTime       @default(now()) @map("created_at")
   updatedAt     DateTime       @updatedAt @map("updated_at")
+  subscriptions Subscription[]
   groups        Group[]
   matches       Match[]
   players       Player[]
-  subscriptions Subscription[]
   teams         Team[]
   tournaments   Tournament[]
   users         User[]
@@ -24,121 +24,111 @@ model Tenant {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  password  String
-  role      String   @default("user")
-  tenantId  Int
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  players   Player[]
-  teams     Team[]   @relation("Coach")
-  tenant    Tenant   @relation(fields: [tenantId], references: [id])
-  
-  // Relations pour les nouvelles fonctionnalités
-  socialPosts SocialPost[]
-  votes      Vote[]
-  teamFans   TeamFan[]
+  id           Int           @id @default(autoincrement())
+  name         String
+  email        String        @unique
+  password     String
+  role         String        @default("user")
+  tenantId     Int
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
   reservations Reservation[]
+  socialPosts  SocialPost[]
+  teamFans     TeamFan[]
+  votes        Vote[]
+  players      Player[]
+  teams        Team[]        @relation("Coach")
+  tenant       Tenant        @relation(fields: [tenantId], references: [id])
 
   @@map("users")
 }
 
 model Team {
-  id              String           @id @default(cuid())
-  name            String
-  logo            String?
-  coachId         Int?
-  coachName       String?
-  players         String[]
-  wins            Int              @default(0)
-  draws           Int              @default(0)
-  losses          Int              @default(0)
-  goalsScored     Int              @default(0)
-  matchesPlayed   Int              @default(0)
-  tenantId        Int?
-  createdAt       DateTime         @default(now()) @map("created_at")
-  updatedAt       DateTime         @updatedAt @map("updated_at")
-  groupTeams      GroupTeam[]
-  homeMatches     Match[]          @relation("HomeMatches")
-  awayMatches     Match[]          @relation("AwayMatches")
-  playerRecords   Player[]
-  coach           User?            @relation("Coach", fields: [coachId], references: [id])
-  tenant          Tenant?          @relation(fields: [tenantId], references: [id])
-  tournamentTeams TournamentTeam[]
-  
-  // Relations pour les nouvelles fonctionnalités
-  socialPosts     SocialPost[]
-  teamFans        TeamFan[]
+  id                          String                       @id @default(cuid())
+  name                        String
+  logo                        String?
+  coachId                     Int?
+  coachName                   String?
+  players                     String[]
+  wins                        Int                          @default(0)
+  draws                       Int                          @default(0)
+  losses                      Int                          @default(0)
+  goalsScored                 Int                          @default(0)
+  matchesPlayed               Int                          @default(0)
+  tenantId                    Int?
+  createdAt                   DateTime                     @default(now()) @map("created_at")
+  updatedAt                   DateTime                     @updatedAt @map("updated_at")
   communityLeagueParticipants CommunityLeagueParticipant[]
-  communityStandings CommunityStanding[]
-  paymentTransactions PaymentTransaction[]
+  communityStandings          CommunityStanding[]
+  paymentTransactions         PaymentTransaction[]
+  socialPosts                 SocialPost[]
+  teamFans                    TeamFan[]
+  groupTeams                  GroupTeam[]
+  awayMatches                 Match[]                      @relation("AwayMatches")
+  homeMatches                 Match[]                      @relation("HomeMatches")
+  playerRecords               Player[]
+  coach                       User?                        @relation("Coach", fields: [coachId], references: [id])
+  tenant                      Tenant?                      @relation(fields: [tenantId], references: [id])
+  tournamentTeams             TournamentTeam[]
 
   @@map("teams")
 }
 
 model Player {
-  id           String   @id @default(cuid())
-  name         String
-  position     String
-  level        Int      @default(3)
-  age          Int
-  teamId       String?  @map("team_id")
-  jerseyNumber Int?
-  userId       Int?
-  tenantId     Int?
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
-  team         Team?    @relation(fields: [teamId], references: [id])
-  tenant       Tenant?  @relation(fields: [tenantId], references: [id])
-  user         User?    @relation(fields: [userId], references: [id])
-  
-  // Relations pour les nouvelles fonctionnalités
-  playerStats  PlayerStats[]
-  playerBadges PlayerBadge[]
-  socialPosts  SocialPost[]
-  reputationLogs ReputationLog[]
+  id                  String               @id @default(cuid())
+  name                String
+  position            String
+  level               Int                  @default(3)
+  age                 Int
+  teamId              String?              @map("team_id")
+  jerseyNumber        Int?
+  userId              Int?
+  tenantId            Int?
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
   paymentTransactions PaymentTransaction[]
-  
-  // Relations pour les matchs en direct
-  matchEvents  MatchEvent[]
+  playerBadges        PlayerBadge[]
+  playerStats         PlayerStats[]
+  reputationLogs      ReputationLog[]
+  socialPosts         SocialPost[]
+  matchEvents         MatchEvent[]
+  team                Team?                @relation(fields: [teamId], references: [id])
+  tenant              Tenant?              @relation(fields: [tenantId], references: [id])
+  user                User?                @relation(fields: [userId], references: [id])
 
   @@map("players")
 }
 
 model Tournament {
-  id             String   @id @default(cuid())
-  name           String
-  description    String?
-  logo           String?
-  startDate      DateTime
-  endDate        DateTime
-  prize          String?
-  rules          String?
-  stadium        String?  // Nom du stade
-  status         String   @default("upcoming")
-  maxTeams       Int      @default(8)
-  currentTeams   Int      @default(0)
-  numberOfGroups Int      @default(2) @map("number_of_groups")
-  teamsPerGroup  Int      @default(4) @map("teams_per_group")
-  drawCompleted  Boolean  @default(false) @map("draw_completed")
-  tenantId       Int?
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
-  groups         Group[]
-  matches        Match[]
-  tenant         Tenant?  @relation(fields: [tenantId], references: [id])
-  tournamentTeams TournamentTeam[]
-  
-  // Relations pour les nouvelles fonctionnalités
-  playerStats PlayerStats[]
-  playerBadges PlayerBadge[]
-  socialPosts SocialPost[]
-  votes       Vote[]
-  paymentTransactions PaymentTransaction[]
-  stadiumTournaments StadiumTournament[]
+  id                         String                      @id @default(cuid())
+  name                       String
+  logo                       String?
+  startDate                  DateTime
+  endDate                    DateTime
+  prize                      String?
+  rules                      String?
+  status                     String                      @default("upcoming")
+  numberOfGroups             Int                         @default(2) @map("number_of_groups")
+  drawCompleted              Boolean                     @default(false) @map("draw_completed")
+  tenantId                   Int?
+  createdAt                  DateTime                    @default(now()) @map("created_at")
+  updatedAt                  DateTime                    @updatedAt @map("updated_at")
+  teamsPerGroup              Int                         @default(4) @map("teams_per_group")
+  currentTeams               Int                         @default(0)
+  description                String?
+  maxTeams                   Int                         @default(8)
+  stadium                    String?
   communityLeagueTournaments CommunityLeagueTournament[]
+  paymentTransactions        PaymentTransaction[]
+  playerBadges               PlayerBadge[]
+  playerStats                PlayerStats[]
+  socialPosts                SocialPost[]
+  stadiumTournaments         StadiumTournament[]
+  votes                      Vote[]
+  groups                     Group[]
+  matches                    Match[]
+  tournamentTeams            TournamentTeam[]
+  tenant                     Tenant?                     @relation(fields: [tenantId], references: [id])
 
   @@map("tournaments")
 }
@@ -150,107 +140,100 @@ model TournamentTeam {
   groupId      String?
   createdAt    DateTime   @default(now()) @map("created_at")
   updatedAt    DateTime   @default(now()) @map("updated_at")
-  tournament   Tournament @relation(fields: [tournamentId], references: [id])
-  team         Team       @relation(fields: [teamId], references: [id])
   group        Group?     @relation(fields: [groupId], references: [id])
+  team         Team       @relation(fields: [teamId], references: [id])
+  tournament   Tournament @relation(fields: [tournamentId], references: [id])
 
   @@map("tournament_teams")
 }
 
 model Group {
-  id           String   @id @default(cuid())
-  name         String
-  tournamentId String
-  tenantId     Int?
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
-  tournament   Tournament @relation(fields: [tournamentId], references: [id])
-  tenant       Tenant?   @relation(fields: [tenantId], references: [id])
-  groupTeams   GroupTeam[]
+  id              String           @id @default(cuid())
+  name            String
+  tournamentId    String
+  tenantId        Int?
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  groupTeams      GroupTeam[]
+  tenant          Tenant?          @relation(fields: [tenantId], references: [id])
+  tournament      Tournament       @relation(fields: [tournamentId], references: [id])
+  matches         Match[]
   tournamentTeams TournamentTeam[]
-  matches      Match[]
 
   @@map("groups")
 }
 
 model GroupTeam {
-  id           String @id @default(cuid())
+  id           String   @id @default(cuid())
   groupId      String
   teamId       String
-  played       Int    @default(0)
-  wins         Int    @default(0)
-  draws        Int    @default(0)
-  losses       Int    @default(0)
-  goalsFor     Int    @default(0)
-  goalsAgainst Int    @default(0)
-  points       Int    @default(0)
+  played       Int      @default(0)
+  wins         Int      @default(0)
+  draws        Int      @default(0)
+  losses       Int      @default(0)
+  goalsFor     Int      @default(0)
+  goalsAgainst Int      @default(0)
+  points       Int      @default(0)
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @default(now()) @map("updated_at")
-  group        Group  @relation(fields: [groupId], references: [id])
-  team         Team   @relation(fields: [teamId], references: [id])
+  group        Group    @relation(fields: [groupId], references: [id])
+  team         Team     @relation(fields: [teamId], references: [id])
 
   @@unique([groupId, teamId])
   @@map("group_teams")
 }
 
 model Match {
-  id           String   @id @default(cuid())
-  homeTeamId   String?  @default("")
-  homeTeam     String?  @default("")
-  awayTeamId   String?  @default("")
-  awayTeam     String?  @default("")
+  id           String          @id @default(cuid())
+  time         String?         @default("")
+  venue        String?         @default("")
+  homeTeam     String?         @default("")
   homeScore    Int?
-  awayScore    Int?
-  date         DateTime @default(now())
-  time         String?  @default("")
-  venue        String?  @default("")
-  status       String   @default("scheduled")
-  groupId      String?
+  status       String          @default("scheduled")
   tournamentId String?
+  groupId      String?
   tenantId     Int?
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @default(now()) @map("updated_at")
-  homeTeamRef  Team?    @relation("HomeMatches", fields: [homeTeamId], references: [id])
-  awayTeamRef  Team?    @relation("AwayMatches", fields: [awayTeamId], references: [id])
-  group        Group?   @relation(fields: [groupId], references: [id])
-  tournament   Tournament? @relation(fields: [tournamentId], references: [id])
-  tenant       Tenant?  @relation(fields: [tenantId], references: [id])
-  
-  // Relations pour les nouvelles fonctionnalités
+  createdAt    DateTime        @default(now()) @map("created_at")
+  updatedAt    DateTime        @default(now()) @map("updated_at")
+  homeTeamId   String?         @default("")
+  date         DateTime        @default(now())
+  awayScore    Int?
+  awayTeam     String?         @default("")
+  awayTeamId   String?         @default("")
   socialPosts  SocialPost[]
-  
-  // Relations pour les matchs en direct
   liveState    LiveMatchState?
   events       MatchEvent[]
+  awayTeamRef  Team?           @relation("AwayMatches", fields: [awayTeamId], references: [id])
+  group        Group?          @relation(fields: [groupId], references: [id])
+  homeTeamRef  Team?           @relation("HomeMatches", fields: [homeTeamId], references: [id])
+  tenant       Tenant?         @relation(fields: [tenantId], references: [id])
+  tournament   Tournament?     @relation(fields: [tournamentId], references: [id])
 
   @@map("matches")
 }
 
 model Subscription {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   tenantId  Int
   plan      String
-  status    String   @default("active")
-  startDate DateTime @default(now())
+  status    String    @default("active")
+  startDate DateTime  @default(now())
   endDate   DateTime?
-  
-  tenant    Tenant   @relation(fields: [tenantId], references: [id])
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  tenant    Tenant    @relation(fields: [tenantId], references: [id])
 }
 
-// Modèles pour les fonctionnalités avancées
 model PaymentTransaction {
-  id            Int      @id @default(autoincrement())
-  transactionId String   @unique @default(cuid())
+  id            Int         @id @default(autoincrement())
+  transactionId String      @unique @default(cuid())
   amount        Float
-  currency      String   @default("MAD")
-  status        String   @default("pending")
+  currency      String      @default("MAD")
+  status        String      @default("pending")
   paymentMethod String
-  commission    Float    @default(0)
-  netAmount     Float    @default(0)
-  playerCount   Int      @default(0)
+  commission    Float       @default(0)
+  netAmount     Float       @default(0)
+  playerCount   Int         @default(0)
   organizerId   Int?
   paymentData   Json?
   completedAt   DateTime?
@@ -258,294 +241,262 @@ model PaymentTransaction {
   teamId        String?
   playerId      String?
   metadata      Json?
-  
-  tournament    Tournament? @relation(fields: [tournamentId], references: [id])
-  team          Team?       @relation(fields: [teamId], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
   player        Player?     @relation(fields: [playerId], references: [id])
-  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  team          Team?       @relation(fields: [teamId], references: [id])
+  tournament    Tournament? @relation(fields: [tournamentId], references: [id])
 }
 
 model PlayerStats {
-  id            Int      @id @default(autoincrement())
+  id            Int        @id @default(autoincrement())
   playerId      String
   tournamentId  String
-  matchesPlayed Int      @default(0)
-  goals         Int      @default(0)
-  assists       Int      @default(0)
-  rating        Float    @default(0.0)
-  
+  matchesPlayed Int        @default(0)
+  goals         Int        @default(0)
+  assists       Int        @default(0)
+  rating        Float      @default(0.0)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
   player        Player     @relation(fields: [playerId], references: [id])
   tournament    Tournament @relation(fields: [tournamentId], references: [id])
-  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
+
   @@unique([playerId, tournamentId])
 }
 
 model PlayerBadge {
-  id          Int      @id @default(autoincrement())
-  playerId    String
-  badgeName   String
-  description String
-  icon        String
-  earnedAt    DateTime @default(now())
+  id           Int         @id @default(autoincrement())
+  playerId     String
+  badgeName    String
+  description  String
+  icon         String
+  earnedAt     DateTime    @default(now())
   tournamentId String?
-  
-  player      Player     @relation(fields: [playerId], references: [id])
-  tournament  Tournament? @relation(fields: [tournamentId], references: [id])
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  player       Player      @relation(fields: [playerId], references: [id])
+  tournament   Tournament? @relation(fields: [tournamentId], references: [id])
 }
 
 model ReputationLog {
-  id        Int      @id @default(autoincrement())
-  playerId  String
-  points    Int
-  reason    String
+  id         Int      @id @default(autoincrement())
+  playerId   String
+  points     Int
+  reason     String
   modifiedBy Int
-  
-  player    Player   @relation(fields: [playerId], references: [id])
-  
-  createdAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  player     Player   @relation(fields: [playerId], references: [id])
 }
 
 model Stadium {
-  id          Int      @id @default(autoincrement())
-  name        String
-  address     String
-  city        String
-  region      String
-  capacity    Int
-  fieldCount  Int
-  fieldTypes  String[] // ['5v5', '7v7', '11v11']
-  amenities   String[] // ['parking', 'shower', 'cafe']
-  images      String[]
-  contactInfo Json
-  pricing     Json
-  description String?
-  isPartner   Boolean  @default(false)
-  ownerId     Int
-  
-  tournaments StadiumTournament[]
+  id           Int                 @id @default(autoincrement())
+  name         String
+  address      String
+  city         String
+  region       String
+  capacity     Int
+  fieldCount   Int
+  fieldTypes   String[]
+  amenities    String[]
+  images       String[]
+  contactInfo  Json
+  pricing      Json
+  description  String?
+  isPartner    Boolean             @default(false)
+  ownerId      Int
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
   reservations Reservation[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  tournaments  StadiumTournament[]
 }
 
 model Reservation {
-  id             Int      @id @default(autoincrement())
-  stadiumId      Int
-  userId         Int
-  fieldType      String
-  startTime      DateTime
-  endTime        DateTime
-  purpose        String?
-  status         String   @default("pending")
-  
-  stadium        Stadium   @relation(fields: [stadiumId], references: [id])
-  user           User      @relation(fields: [userId], references: [id])
-  
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  stadiumId Int
+  userId    Int
+  fieldType String
+  startTime DateTime
+  endTime   DateTime
+  purpose   String?
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  stadium   Stadium  @relation(fields: [stadiumId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model Sponsor {
-  id          Int      @id @default(autoincrement())
-  name        String
-  logo        String?
-  website     String?
-  description String?
-  contactInfo Json?
-  isActive    Boolean  @default(true)
-  
+  id           Int           @id @default(autoincrement())
+  name         String
+  logo         String?
+  website      String?
+  description  String?
+  contactInfo  Json?
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
   sponsorships Sponsorship[]
-  
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
 }
 
 model Sponsorship {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   sponsorId Int
-  type      String   // 'tournament', 'team', 'player'
-  targetId  String   // ID du tournoi, équipe ou joueur
+  type      String
+  targetId  String
   amount    Float?
   startDate DateTime
   endDate   DateTime?
-  status    String   @default("active")
-  
-  sponsor   Sponsor  @relation(fields: [sponsorId], references: [id])
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  status    String    @default("active")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  sponsor   Sponsor   @relation(fields: [sponsorId], references: [id])
 }
 
 model SocialPost {
-  id          Int      @id @default(autoincrement())
-  content     String
-  media       String[]
-  hashtags    String[]
-  likes       Int      @default(0)
-  comments    Int      @default(0)
-  shares      Int      @default(0)
-  playerId    String?
-  teamId      String?
+  id           Int         @id @default(autoincrement())
+  content      String
+  media        String[]
+  hashtags     String[]
+  likes        Int         @default(0)
+  comments     Int         @default(0)
+  shares       Int         @default(0)
+  playerId     String?
+  teamId       String?
   tournamentId String?
-  matchId     String?
-  userId      Int?
-  isPublic    Boolean  @default(true)
-  
-  player      Player?     @relation(fields: [playerId], references: [id])
-  team        Team?       @relation(fields: [teamId], references: [id])
-  tournament  Tournament? @relation(fields: [tournamentId], references: [id])
-  match       Match?      @relation(fields: [matchId], references: [id])
-  user        User?       @relation(fields: [userId], references: [id])
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  matchId      String?
+  userId       Int?
+  isPublic     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  match        Match?      @relation(fields: [matchId], references: [id])
+  player       Player?     @relation(fields: [playerId], references: [id])
+  team         Team?       @relation(fields: [teamId], references: [id])
+  tournament   Tournament? @relation(fields: [tournamentId], references: [id])
+  user         User?       @relation(fields: [userId], references: [id])
 }
 
 model CommunityLeague {
-  id              Int      @id @default(autoincrement())
-  name            String
-  description     String?
-  region          String
-  season          String
-  maxTeams        Int
-  rules           String?
-  startDate       DateTime
-  endDate         DateTime
-  isCommunityLeague Boolean @default(true)
-  createdBy       Int
-  status          String   @default("active") // active, completed, cancelled
-  
-  tournaments     CommunityLeagueTournament[]
-  participants    CommunityLeagueParticipant[]
-  standings       CommunityStanding[]
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                Int                          @id @default(autoincrement())
+  name              String
+  description       String?
+  region            String
+  season            String
+  maxTeams          Int
+  rules             String?
+  startDate         DateTime
+  endDate           DateTime
+  isCommunityLeague Boolean                      @default(true)
+  createdBy         Int
+  status            String                       @default("active")
+  createdAt         DateTime                     @default(now())
+  updatedAt         DateTime                     @updatedAt
+  participants      CommunityLeagueParticipant[]
+  tournaments       CommunityLeagueTournament[]
+  standings         CommunityStanding[]
 }
 
 model CommunityLeagueParticipant {
-  id        Int      @id @default(autoincrement())
-  leagueId  Int
-  teamId    String
-  
-  league    CommunityLeague @relation(fields: [leagueId], references: [id])
-  team      Team            @relation(fields: [teamId], references: [id])
-  
+  id       Int             @id @default(autoincrement())
+  leagueId Int
+  teamId   String
+  league   CommunityLeague @relation(fields: [leagueId], references: [id])
+  team     Team            @relation(fields: [teamId], references: [id])
+
   @@unique([leagueId, teamId])
 }
 
 model CommunityStanding {
-  id            Int      @id @default(autoincrement())
-  leagueId      Int
-  teamId        String
-  played        Int      @default(0)
-  wins          Int      @default(0)
-  draws         Int      @default(0)
-  losses        Int      @default(0)
-  goalsFor      Int      @default(0)
-  goalsAgainst  Int      @default(0)
-  points        Int      @default(0)
-  goalDifference Int     @default(0)
-  
-  league        CommunityLeague @relation(fields: [leagueId], references: [id])
-  team          Team            @relation(fields: [teamId], references: [id])
-  
+  id             Int             @id @default(autoincrement())
+  leagueId       Int
+  teamId         String
+  played         Int             @default(0)
+  wins           Int             @default(0)
+  draws          Int             @default(0)
+  losses         Int             @default(0)
+  goalsFor       Int             @default(0)
+  goalsAgainst   Int             @default(0)
+  points         Int             @default(0)
+  goalDifference Int             @default(0)
+  league         CommunityLeague @relation(fields: [leagueId], references: [id])
+  team           Team            @relation(fields: [teamId], references: [id])
+
   @@unique([leagueId, teamId])
 }
 
 model Vote {
-  id          Int      @id @default(autoincrement())
-  userId      Int
-  type        String   // 'mvp', 'best_goal', 'best_save'
-  targetId    Int
-  targetType  String   // 'player', 'match'
+  id           Int        @id @default(autoincrement())
+  userId       Int
+  type         String
+  targetId     Int
+  targetType   String
   tournamentId String
-  
-  user        User       @relation(fields: [userId], references: [id])
-  tournament  Tournament @relation(fields: [tournamentId], references: [id])
-  
-  createdAt   DateTime @default(now())
-  
+  createdAt    DateTime   @default(now())
+  tournament   Tournament @relation(fields: [tournamentId], references: [id])
+  user         User       @relation(fields: [userId], references: [id])
+
   @@unique([userId, type, targetId, targetType, tournamentId])
 }
 
 model TeamFan {
-  id        Int      @id @default(autoincrement())
-  teamId    String
-  userId    Int
-  level     String   @default("supporter") // supporter, ultra, membre
-  joinedAt  DateTime @default(now())
-  
-  team      Team     @relation(fields: [teamId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
-  
+  id       Int      @id @default(autoincrement())
+  teamId   String
+  userId   Int
+  level    String   @default("supporter")
+  joinedAt DateTime @default(now())
+  team     Team     @relation(fields: [teamId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
+
   @@unique([teamId, userId])
 }
 
 model StadiumTournament {
-  id          Int      @id @default(autoincrement())
-  stadiumId   Int
+  id           Int        @id @default(autoincrement())
+  stadiumId    Int
   tournamentId String
-  
-  stadium     Stadium    @relation(fields: [stadiumId], references: [id])
-  tournament  Tournament @relation(fields: [tournamentId], references: [id])
-  
+  stadium      Stadium    @relation(fields: [stadiumId], references: [id])
+  tournament   Tournament @relation(fields: [tournamentId], references: [id])
+
   @@unique([stadiumId, tournamentId])
 }
 
 model CommunityLeagueTournament {
-  id          Int      @id @default(autoincrement())
-  leagueId    Int
+  id           Int             @id @default(autoincrement())
+  leagueId     Int
   tournamentId String
-  
-  league      CommunityLeague @relation(fields: [leagueId], references: [id])
-  tournament  Tournament      @relation(fields: [tournamentId], references: [id])
-  
+  league       CommunityLeague @relation(fields: [leagueId], references: [id])
+  tournament   Tournament      @relation(fields: [tournamentId], references: [id])
+
   @@unique([leagueId, tournamentId])
 }
 
-// Modèles pour les matchs en direct
 model LiveMatchState {
-  id          String   @id @default(cuid())
-  matchId     String   @unique
-  isLive      Boolean  @default(false)
-  isPaused    Boolean  @default(false)
-  matchTime   Int      @default(0) // Temps en secondes
-  homeScore   Int      @default(0)
-  
-  match       Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  id        String   @id @default(cuid())
+  matchId   String   @unique
+  isLive    Boolean  @default(false)
+  isPaused  Boolean  @default(false)
+  matchTime Int      @default(0)
+  homeScore Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
   @@map("live_match_states")
 }
 
 model MatchEvent {
   id          String   @id @default(cuid())
   matchId     String
-  type        String   // 'goal', 'yellow_card', 'red_card', 'substitution'
+  type        String
   minute      Int
   playerId    String?
   playerName  String?
-  team        String   // 'home' ou 'away'
+  team        String
   description String
   timestamp   DateTime @default(now())
-  
-  match       Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  player      Player?  @relation(fields: [playerId], references: [id])
-  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+  match       Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  player      Player?  @relation(fields: [playerId], references: [id])
+
   @@map("match_events")
 }

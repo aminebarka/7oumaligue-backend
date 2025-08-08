@@ -99,7 +99,7 @@ async function main() {
 
   for (let i = 0; i < teams.length; i++) {
     const team = teams[i]
-    const teamPlayers = []
+    const teamPlayers: string[] = []
 
     for (let j = 0; j < 5; j++) {
       const playerIndex = i * 5 + j
@@ -117,7 +117,7 @@ async function main() {
         },
       })
 
-      teamPlayers.push(player.id)
+      teamPlayers.push(String(player.id))
     }
 
     // Mettre à jour l'équipe avec les IDs des joueurs

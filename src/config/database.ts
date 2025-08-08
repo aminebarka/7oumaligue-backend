@@ -1,10 +1,58 @@
 import { PrismaClient } from "@prisma/client"
 import { logger } from "../utils/logger"
+import path from "path"
+import fs from "fs"
+
+// Fonction pour charger les variables d'environnement
+function loadEnvVars() {
+  // 1. Vérifier si DATABASE_URL est déjà définie
+  if (process.env.DATABASE_URL) return;
+  
+  // 2. Essayer de charger depuis .env
+  try {
+    const envPath = path.resolve(__dirname, '../../.env');
+    if (fs.existsSync(envPath)) {
+      const envFile = fs.readFileSync(envPath, 'utf-8');
+      const envLines = envFile.split('\n');
+      
+      for (const line of envLines) {
+        const [key, ...values] = line.split('=');
+        const value = values.join('=').trim();
+        
+        // Ne traiter que les lignes avec une clé et une valeur
+        if (key && value && !process.env[key]) {
+          process.env[key] = value.replace(/^"|"$/g, '');
+        }
+      }
+      logger.warn('⚠️ Loaded environment variables from .env file');
+    }
+  } catch (error) {
+    logger.error('❌ Failed to load .env file:', error);
+  }
+  
+  // 3. Vérification finale
+  if (!process.env.DATABASE_URL) {
+    logger.error('❌ CRITICAL: DATABASE_URL is not defined in environment variables');
+    logger.error('❌ Available environment keys:', Object.keys(process.env).join(', '));
+    process.exit(1);
+  }
+}
+
+// Appeler cette fonction immédiatement
+loadEnvVars();
 
 declare global {
   var __prisma: PrismaClient | undefined
 }
-
+function ensurePrismaInitialized() {
+  try {
+    // Tente d'accéder à une propriété pour vérifier l'initialisation
+    prisma.$extends({});
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
 export const prisma =
   globalThis.__prisma ||
   new PrismaClient({
@@ -64,7 +112,17 @@ prisma.$on("warn", (e: Prisma.LogEvent) => {
 export const connectDatabase = async () => {
   const maxRetries = 5
   const retryDelay = 2000 // 2 seconds
-
+  if (!ensurePrismaInitialized()) {
+    logger.error("❌ Prisma client not initialized. Running prisma generate...");
+    try {
+      // Tenter de régénérer le client
+      const { execSync } = require('child_process');
+      execSync('npx prisma generate', { stdio: 'inherit' });
+      logger.info("✅ Prisma client regenerated");
+    } catch (error) {
+      logger.error("❌ Failed to regenerate Prisma client:", error);
+      process.exit(1);
+    }}
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       await prisma.$connect()

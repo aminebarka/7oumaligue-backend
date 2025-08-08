@@ -1,33 +1,38 @@
-# Étape de build
-FROM node:18-alpine AS builder
+FROM node:20-alpine
+
+# Installer uniquement les dépendances essentielles
+RUN apk add --no-cache make gcc g++ python3
+
 WORKDIR /app
 
-# Installer les dépendances système pour bcrypt et autres
-RUN apk add --no-cache python3 make g++ git
-
-# Copier et installer les dépendances Node
+# 1. Copier les fichiers essentiels en premier
 COPY package*.json ./
-RUN npm ci --omit=dev
+COPY tsconfig.json ./
+COPY prisma ./prisma
 
-# Copier le code source et compiler TypeScript
-COPY . .
-RUN npm run build
+# 2. Installer les dépendances
+RUN npm install --production
 
-# Étape d'exécution légère
-FROM node:18-alpine
-WORKDIR /app
+# 3. Copier le fichier .env (s'il existe)
+COPY .env ./
 
-# Copier uniquement les fichiers nécessaires
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/prisma ./prisma
-
-# Générer le client Prisma
+# 4. Générer le client Prisma
 RUN npx prisma generate
 
-# Variables d'environnement
-ENV PORT=8080
-EXPOSE $PORT
+# 5. Installer les types supplémentaires
+RUN npm install @types/bcryptjs @types/cors @types/express @types/jsonwebtoken @types/node
 
-# Commande de dém arrage
+# 6. Copier le reste du code
+COPY . .
+
+# 7. Compiler l'application
+RUN npm run build
+
+# Définir les variables d'environnement de façon explicite
+ENV PORT=8080
+ENV HOST=0.0.0.0
+ENV NODE_ENV=production
+
+EXPOSE 8080
+
 CMD ["node", "dist/src/server.js"]

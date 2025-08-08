@@ -1,4 +1,4 @@
-import { createCanvas, loadImage, registerFont } from 'canvas'
+import { createCanvas, loadImage } from 'canvas'
 import path from 'path'
 
 interface PlayerCardData {
@@ -11,8 +11,9 @@ interface PlayerCardData {
 
 // Enregistrer les polices (optionnel)
 try {
-  registerFont(path.join(__dirname, '../assets/fonts/Roboto-Bold.ttf'), { family: 'Roboto-Bold' })
-  registerFont(path.join(__dirname, '../assets/fonts/Roboto-Regular.ttf'), { family: 'Roboto-Regular' })
+  // Note: registerFont n'est pas disponible dans cette version de canvas
+  // Les polices par défaut seront utilisées
+  console.log('Utilisation des polices par défaut')
 } catch (error) {
   console.log('Polices non trouvées, utilisation des polices par défaut')
 }

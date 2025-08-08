@@ -43,7 +43,11 @@ router.post('/tournaments/:id/draw', authenticateToken, async (req, res) => {
     const shuffledTeams = shuffleArray([...teams])
     
     // Répartir les équipes dans les groupes
-    const groups = []
+    const groups: Array<{
+      name: string;
+      teams: any[];
+      index: number;
+    }> = []
     const teamsPerGroup = Math.ceil(teams.length / numberOfGroups)
     
     for (let i = 0; i < numberOfGroups; i++) {
