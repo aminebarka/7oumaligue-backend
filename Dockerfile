@@ -14,7 +14,7 @@ COPY prisma ./prisma
 RUN npm install --production
 
 # 3. Copier le fichier .env (s'il existe)
-COPY .env ./
+COPY .env .
 
 # 4. Générer le client Prisma
 RUN npx prisma generate

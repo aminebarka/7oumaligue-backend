@@ -1,21 +1,25 @@
-// Charger les variables d'environnement IMMÉDIATEMENT
 import dotenv from 'dotenv';
 import path from 'path';
 
-// Forcer le port et l'hôte pour Azure
-if (process.env.NODE_ENV === 'production') {
+// Charger .env IMMÉDIATEMENT
+const envPath = path.resolve(__dirname, '../../.env'); // Adapté pour dist/src
+dotenv.config({ path: envPath, override: true });
+
+// Forcer les valeurs pour Azure SI nécessaire
+if (process.env.WEBSITE_SITE_NAME || process.env.NODE_ENV === 'production') {
+  console.log('⚙️ Applying Azure production settings');
   process.env.PORT = '8080';
   process.env.HOST = '0.0.0.0';
 }
 
-// Charger .env manuellement si nécessaire
-const envPath = path.resolve(__dirname, '../.env');
-dotenv.config({ path: envPath });
-
-// Log des variables critiques
-console.log('🔍 FORCED PORT:', process.env.PORT);
-console.log('🔍 FORCED HOST:', process.env.HOST);
-console.log('🔍 DATABASE_URL:', process.env.DATABASE_URL ? '***REDACTED***' : 'MISSING');
+// Debug complet des variables
+console.log('✅ ENV LOADED:', {
+  PORT: process.env.PORT,
+  HOST: process.env.HOST,
+  NODE_ENV: process.env.NODE_ENV,
+  DATABASE_URL: process.env.DATABASE_URL ? '***REDACTED***' : 'MISSING',
+  WEBSITE_SITE_NAME: process.env.WEBSITE_SITE_NAME
+});
 
 import express from "express"
 import cors from "cors"
