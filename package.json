@@ -10,7 +10,7 @@
     "postinstall": "prisma generate",
     "start": "node dist/src/server.js",
     "healthcheck": "node healthcheck.js",
-    "azure:start": "npm run healthcheck & npm start",
+    "azure:start": "PORT=8080 node dist/src/server.js",
     "azure:predeploy": "npm install --production=false && npm run build && npx prisma generate && npx prisma migrate deploy",
     "migrate": "prisma migrate dev",
     "generate": "prisma generate",
