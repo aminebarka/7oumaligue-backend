@@ -3,11 +3,21 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const dotenv_1 = __importDefault(require("dotenv"));
+const path_1 = __importDefault(require("path"));
+if (process.env.NODE_ENV === 'production') {
+    process.env.PORT = '8080';
+    process.env.HOST = '0.0.0.0';
+}
+const envPath = path_1.default.resolve(__dirname, '../.env');
+dotenv_1.default.config({ path: envPath });
+console.log('🔍 FORCED PORT:', process.env.PORT);
+console.log('🔍 FORCED HOST:', process.env.HOST);
+console.log('🔍 DATABASE_URL:', process.env.DATABASE_URL ? '***REDACTED***' : 'MISSING');
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
-const dotenv_1 = __importDefault(require("dotenv"));
 const logger_1 = require("./utils/logger");
 const error_middleware_1 = require("./middleware/error.middleware");
 const cors_middleware_1 = require("./middleware/cors.middleware");
@@ -20,12 +30,13 @@ const matchRoutes = require('./routes/match.routes').default;
 const dataRoutes = require('./routes/data.routes').default;
 const liveMatchRoutes = require('./routes/liveMatch.routes').default;
 const stadiumRoutes = require('./routes/stadium.routes').default;
-dotenv_1.default.config();
-console.log('🔍 DEBUG - process.env.PORT:', process.env.PORT);
-console.log('🔍 DEBUG - NODE_ENV:', process.env.NODE_ENV);
 const app = (0, express_1.default)();
-const PORT = process.env.PORT || 8080;
+const PORT = Number(process.env.PORT) || 8080;
 const HOST = process.env.HOST || '0.0.0.0';
+if (isNaN(PORT)) {
+    console.error('❌ INVALID PORT:', process.env.PORT);
+    process.exit(1);
+}
 console.log('🚀 DEBUG - Final PORT value:', PORT);
 app.get('/ping', (req, res) => {
     res.status(200).send('pong');
@@ -168,11 +179,11 @@ app.use("*", (req, res) => {
 });
 app.use(error_middleware_1.errorHandler);
 const startServer = async () => {
-  const PORT = Number(process.env.PORT) || 8080;
-
-  const server = app.listen(PORT, '0.0.0.0', () => {
-    console.log(`✅ Server running on 0.0.0.0:${PORT}`);
-  });
+    const port = Number(process.env.PORT) || 8080;
+    const server = app.listen(port, '0.0.0.0', () => {
+        console.log(`✅ Server running on 0.0.0.0:${port}`);
+        logger_1.logger.info(`🚀 Server running on 0.0.0.0:${port}`);
+    });
     try {
         await (0, database_1.connectDatabase)();
         logger_1.logger.info("✅ Database connected");
