@@ -54,7 +54,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: .
+          path: |
+            dist
+            package.json
+            package-lock.json
+            .env
 
   deploy:
     runs-on: ubuntu-latest
