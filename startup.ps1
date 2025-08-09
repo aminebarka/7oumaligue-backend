@@ -25,7 +25,7 @@ RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX_REQUESTS=1000
 
 # CORS Origins
-CORS_ORIGINS="http://localhost:5173,http://localhost:5174,http://127.0.0.1:5173,http://127.0.0.1:5174,https://gray-tree-0ae561303.2.azurestaticapps.net"
+CORS_ORIGINS="http://localhost:5173,http://localhost:5174,http://127.0.0.1:5173,http://127.0.0.1:5174,https://gray-tree-0ae561303.2.azurestaticapps.net,https://tonfrontend.azurestaticapps.net"
 
 # Logging
 LOG_LEVEL=info

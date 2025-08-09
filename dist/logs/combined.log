@@ -1,0 +1,2 @@
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mDatabase error:\u001b[39m","timestamp":"2025-08-09 00:54:39:5439"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mDatabase error details:\u001b[39m","target":"quaint::connector::postgres::native","timestamp":"2025-08-09 00:54:42:5442"}

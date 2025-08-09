@@ -56,7 +56,7 @@ Create/update `.env` file with:
 ```env
 DATABASE_URL="postgresql://ftms_user:password@localhost:5432/ftms_db"
 JWT_SECRET="your-super-secret-jwt-key"
-PORT=3001
+PORT=8080
 NODE_ENV=development
 ```
 
@@ -69,7 +69,7 @@ NODE_ENV=development
 # Or manually create .env file with:
 DATABASE_URL="postgresql://username:password@localhost:5432/7oumaligue_db"
 JWT_SECRET="your-super-secret-jwt-key"
-PORT=3001
+PORT=8080
 NODE_ENV=development
 ```
 

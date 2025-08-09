@@ -1,50 +1,57 @@
-FROM node:20-alpine
+FROM node:20-alpine AS build
 
-# Installer uniquement les dépendances essentielles
+# Installer build tools (pour bcrypt, sharp, etc.)
 RUN apk add --no-cache make gcc g++ python3
 
 WORKDIR /app
 
-# 1. Copier les fichiers essentiels en premier
-COPY package*.json ./
-COPY tsconfig.json ./
+# Copier package.json, package-lock.json et dossier prisma pour npm ci + prisma generate
+COPY package*.json ./ 
 COPY prisma ./prisma
 
-# 2. Installer les dépendances
-RUN npm install --production
+# Installer toutes les dépendances (dev + prod) pour compiler
+RUN npm ci
 
-# 3. Copier le fichier .env (s'il existe) - optionnel
-COPY .env* ./
-
-# 4. Générer le client Prisma
+# Générer le client Prisma
 RUN npx prisma generate
 
-# 5. Installer les types supplémentaires
-RUN npm install @types/bcryptjs @types/cors @types/express @types/jsonwebtoken @types/node
-
-# 6. Copier le reste du code
+# Copier le reste des fichiers (code source + tsconfig)
+COPY tsconfig.json ./
 COPY . .
 
-# 7. Compiler l'application
+# Compiler le code
 RUN npm run build
 
-# Définir les variables d'environnement de façon explicite
-ENV PORT=8080
-ENV HOST=0.0.0.0
-ENV NODE_ENV=production
+# -------- Production stage --------
+  FROM node:20-alpine
 
-# Créer un utilisateur non-root pour la sécurité
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
-
-# Changer la propriété des fichiers
-RUN chown -R nodejs:nodejs /app
-USER nodejs
-
-EXPOSE 8080
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node healthcheck.js
-
-CMD ["node", "dist/src/server.js"]
+  WORKDIR /app
+  
+  # Copier package.json et prisma AVANT npm ci
+  COPY package*.json ./
+  COPY prisma ./prisma
+  
+  RUN npm ci --omit=dev
+  
+  COPY --from=build /app/dist ./dist
+  COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
+  COPY --from=build /app/.env* ./
+  
+  # Variables d'environnement
+  ENV PORT=8080
+  ENV HOST=0.0.0.0
+  ENV NODE_ENV=production
+  
+  # Utilisateur non-root
+  RUN addgroup -g 1001 -S nodejs \
+   && adduser -S nodejs -u 1001 \
+   && chown -R nodejs:nodejs /app
+  USER nodejs
+  
+  EXPOSE 8080
+  
+  HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD node healthcheck.js
+  
+  CMD ["node", "dist/src/server.js"]
+  

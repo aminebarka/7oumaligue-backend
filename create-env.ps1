@@ -22,7 +22,7 @@ DATABASE_URL="postgresql://ftms_user:password@localhost:5432/ftms_db"
 JWT_SECRET="your-super-secret-jwt-key-change-this-in-production"
 
 # Server Configuration
-PORT=3001
+PORT=8080
 NODE_ENV=development
 
 # Rate Limiting

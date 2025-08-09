@@ -51,7 +51,7 @@ if (!fs.existsSync(envPath)) {
     console.log('📝 Creating .env file...');
     const envContent = `DATABASE_URL="postgresql://ftms_user:password@localhost:5432/ftms_db"
 JWT_SECRET="your-super-secret-jwt-key"
-PORT=3001
+PORT=8080
 NODE_ENV=development`;
     fs.writeFileSync(envPath, envContent);
     console.log('✅ .env file created');

@@ -28,7 +28,7 @@ if (Test-Path ".env") {
 $envContent = @"
 DATABASE_URL="postgresql://ftms_user:password@localhost:5432/ftms_db"
 JWT_SECRET="your-super-secret-jwt-key-change-this-in-production"
-PORT=3001
+PORT=8080
 NODE_ENV=development
 RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX_REQUESTS=100

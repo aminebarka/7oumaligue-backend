@@ -14,7 +14,7 @@ DATABASE_URL="postgresql://username:password@localhost:5432/7oumaligue_db"
 JWT_SECRET="your-super-secret-jwt-key-change-this-in-production"
 
 # Server Configuration
-PORT=3001
+PORT=8080
 NODE_ENV=development
 
 # Rate Limiting
