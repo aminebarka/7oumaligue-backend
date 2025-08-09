@@ -12,9 +12,9 @@ declare global {
         }
     }
 }
-export declare const authenticateToken: (req: Request, res: Response, next: NextFunction) => any;
-export declare const requireRole: (roles: string[]) => (req: Request, res: Response, next: NextFunction) => any;
-export declare const requireAdmin: (req: Request, res: Response, next: NextFunction) => any;
-export declare const requireAdminOrCoach: (req: Request, res: Response, next: NextFunction) => any;
+export declare const authenticateToken: (req: Request, res: Response, next: NextFunction) => void | Response<any, Record<string, any>>;
+export declare const requireRole: (roles: string[]) => (req: Request, res: Response, next: NextFunction) => void | Response<any, Record<string, any>>;
+export declare const requireAdmin: (req: Request, res: Response, next: NextFunction) => void | Response<any, Record<string, any>>;
+export declare const requireAdminOrCoach: (req: Request, res: Response, next: NextFunction) => void | Response<any, Record<string, any>>;
 export {};
 //# sourceMappingURL=auth.middleware.d.ts.map

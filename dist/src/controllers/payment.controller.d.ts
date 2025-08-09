@@ -17,7 +17,7 @@ export interface PaymentResponse {
 export declare class PaymentController {
     static createPayment(req: Request, res: Response): Promise<any>;
     static checkPaymentStatus(req: Request, res: Response): Promise<any>;
-    static paymentWebhook(req: Request, res: Response): Promise<any>;
+    static paymentWebhook(req: Request, res: Response): Promise<Response<any, Record<string, any>>>;
     static getPaymentStats(req: Request, res: Response): Promise<any>;
     private static generateTransactionId;
     private static generateFlouciPayment;

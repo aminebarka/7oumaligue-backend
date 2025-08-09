@@ -56,7 +56,8 @@ app.use((0, cors_1.default)({
         "http://localhost:5174",
         "http://127.0.0.1:5173",
         "http://127.0.0.1:5174",
-        "https://gray-tree-0ae561303.2.azurestaticapps.net"
+        "https://gray-tree-0ae561303.2.azurestaticapps.net",
+        'https://tonfrontend.azurestaticapps.net'
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
