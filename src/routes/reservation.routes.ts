@@ -103,7 +103,7 @@ export const getReservations = async (req: Request, res: Response) => {
       }
     });
 
-    return success(res, reservations, "Réservations récupérées avec succès");
+    return success(res, "Réservations récupérées avec succès", reservations);
   } catch (error) {
     console.error("Erreur lors de la récupération des réservations:", error);
     return badRequest(res, "Erreur lors de la récupération des réservations");
@@ -189,13 +189,13 @@ export const getCalendarReservations = async (req: Request, res: Response) => {
       }
     });
 
-    return success(res, {
+    return success(res, "Données du calendrier récupérées avec succès", {
       reservations,
       view,
       date: baseDate.toISOString(),
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString()
-    }, "Données du calendrier récupérées avec succès");
+    });
   } catch (error) {
     console.error("Erreur lors de la récupération du calendrier:", error);
     return badRequest(res, "Erreur lors de la récupération du calendrier");
@@ -262,7 +262,8 @@ export const createReservation = async (req: Request, res: Response) => {
 
     // Calculer le prix
     const duration = (new Date(endTime).getTime() - new Date(startTime).getTime()) / (1000 * 60 * 60); // heures
-    const hourlyRate = field.stadium.pricing?.hourly || 50;
+    const pricing = field.stadium.pricing as any;
+    const hourlyRate = pricing?.hourly || 50;
     const price = duration * hourlyRate;
 
     // Créer la réservation
@@ -311,7 +312,7 @@ export const createReservation = async (req: Request, res: Response) => {
       }
     });
 
-    return created(res, reservation, "Réservation créée avec succès");
+    return created(res, "Réservation créée avec succès", reservation);
   } catch (error) {
     console.error("Erreur lors de la création de la réservation:", error);
     return badRequest(res, "Erreur lors de la création de la réservation");
@@ -435,7 +436,7 @@ export const updateReservation = async (req: Request, res: Response) => {
       });
     }
 
-    return success(res, updatedReservation, "Réservation mise à jour avec succès");
+    return success(res, "Réservation mise à jour avec succès", updatedReservation);
   } catch (error) {
     console.error("Erreur lors de la mise à jour de la réservation:", error);
     return badRequest(res, "Erreur lors de la mise à jour de la réservation");
@@ -484,7 +485,7 @@ export const deleteReservation = async (req: Request, res: Response) => {
       }
     });
 
-    return success(res, null, "Réservation supprimée avec succès");
+    return success(res, "Réservation supprimée avec succès", null);
   } catch (error) {
     console.error("Erreur lors de la suppression de la réservation:", error);
     return badRequest(res, "Erreur lors de la suppression de la réservation");
@@ -544,7 +545,7 @@ export const getReservationStatistics = async (req: Request, res: Response) => {
       prisma.reservation.aggregate({
         where: { ...where, status: 'confirmed' },
         _avg: {
-          _raw: 'EXTRACT(EPOCH FROM ("endTime" - "startTime")) / 3600'
+          // Calculer la durée moyenne en heures
         }
       })
     ]);
@@ -555,11 +556,11 @@ export const getReservationStatistics = async (req: Request, res: Response) => {
       pending: pendingReservations,
       cancelled: cancelledReservations,
       revenue: totalRevenue._sum.price || 0,
-      averageDuration: averageDuration._avg._raw || 0,
+      averageDuration: 0, // TODO: Implémenter le calcul de durée moyenne
       occupancyRate: totalReservations > 0 ? (confirmedReservations / totalReservations) * 100 : 0
     };
 
-    return success(res, statistics, "Statistiques récupérées avec succès");
+    return success(res, "Statistiques récupérées avec succès", statistics);
   } catch (error) {
     console.error("Erreur lors de la récupération des statistiques:", error);
     return badRequest(res, "Erreur lors de la récupération des statistiques");

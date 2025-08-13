@@ -9,15 +9,15 @@ const unauthorized = (res, message) => {
     return res.status(401).json({ success: false, message });
 };
 exports.unauthorized = unauthorized;
-const created = (res, data, message) => {
+const created = (res, message, data) => {
     return res.status(201).json({ success: true, data, message });
 };
 exports.created = created;
-const success = (res, data, message) => {
-    if (message) {
+const success = (res, message, data) => {
+    if (data) {
         return res.status(200).json({ success: true, data, message });
     }
-    return res.status(200).json({ success: true, data });
+    return res.status(200).json({ success: true, message });
 };
 exports.success = success;
 const notFound = (res, message) => {

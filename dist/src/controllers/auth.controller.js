@@ -46,7 +46,7 @@ const register = async (req, res) => {
             role: user.role,
             tenantId: user.tenantId,
         };
-        return (0, apiResponse_1.created)(res, { user: userData, token }, "Compte créé avec succès");
+        return (0, apiResponse_1.created)(res, "Compte créé avec succès", { user: userData, token });
     }
     catch (error) {
         console.error("Erreur lors de l'inscription:", error);
@@ -83,7 +83,7 @@ const login = async (req, res) => {
             role: user.role,
             tenantId: user.tenantId,
         };
-        return (0, apiResponse_1.success)(res, { user: userData, token }, "Connexion réussie");
+        return (0, apiResponse_1.success)(res, "Connexion réussie", { user: userData, token });
     }
     catch (error) {
         console.error("Erreur lors de la connexion:", error);
@@ -112,7 +112,7 @@ const getProfile = async (req, res) => {
         if (!user) {
             return (0, apiResponse_1.unauthorized)(res, "Utilisateur non trouvé");
         }
-        return (0, apiResponse_1.success)(res, user);
+        return (0, apiResponse_1.success)(res, "Profil récupéré avec succès", user);
     }
     catch (error) {
         console.error("Erreur lors de la récupération du profil:", error);
@@ -154,7 +154,7 @@ const updateProfile = async (req, res) => {
                 updatedAt: true,
             },
         });
-        return (0, apiResponse_1.success)(res, updatedUser, "Profil mis à jour avec succès");
+        return (0, apiResponse_1.success)(res, "Profil mis à jour avec succès", updatedUser);
     }
     catch (error) {
         console.error("Erreur lors de la mise à jour du profil:", error);
@@ -185,7 +185,7 @@ const changePassword = async (req, res) => {
             where: { id: userId },
             data: { password: hashedNewPassword },
         });
-        return (0, apiResponse_1.success)(res, null, "Mot de passe modifié avec succès");
+        return (0, apiResponse_1.success)(res, "Mot de passe modifié avec succès", null);
     }
     catch (error) {
         console.error("Erreur lors du changement de mot de passe:", error);

@@ -81,7 +81,7 @@ export const createTournament = async (req: Request, res: Response) => {
 
     console.log("✅ Tournoi créé avec succès:", tournament);
 
-    return created(res, tournament, "Tournoi créé avec succès")
+    return created(res, "Tournoi créé avec succès", tournament)
   } catch (error: any) {
     console.error("❌ Erreur création tournoi:", {
       error: error?.message || error,
@@ -116,7 +116,7 @@ export const getTournaments = async (req: Request, res: Response) => {
       },
     })
 
-    return success(res, tournaments)
+    return success(res, "Tournois récupérés avec succès", tournaments)
   } catch (error) {
     console.error("Erreur récupération tournois:", error)
     return badRequest(res, "Erreur lors de la récupération des tournois")
@@ -154,7 +154,7 @@ export const getTournamentById = async (req: Request, res: Response) => {
       return notFound(res, "Tournoi non trouvé")
     }
 
-    return success(res, tournament)
+    return success(res, "Tournoi récupéré avec succès", tournament)
   } catch (error) {
     console.error("Erreur récupération tournoi:", error)
     return badRequest(res, "Erreur lors de la récupération du tournoi")
@@ -182,7 +182,7 @@ export const updateTournament = async (req: Request, res: Response) => {
       data: updateData,
     })
 
-    return success(res, tournament, "Tournoi mis à jour avec succès")
+    return success(res, "Tournoi mis à jour avec succès", tournament)
   } catch (error) {
     console.error("Erreur mise à jour tournoi:", error)
     return badRequest(res, "Erreur lors de la mise à jour du tournoi")
@@ -200,7 +200,7 @@ export const deleteTournament = async (req: Request, res: Response) => {
       },
     })
 
-    return success(res, null, "Tournoi supprimé avec succès")
+    return success(res, "Tournoi supprimé avec succès", null)
   } catch (error) {
     console.error("Erreur suppression tournoi:", error)
     return badRequest(res, "Erreur lors de la suppression du tournoi")
@@ -275,7 +275,7 @@ export const addTeamToTournament = async (req: Request, res: Response) => {
 
     console.log("Équipe ajoutée avec succès:", { tournamentTeamId: tournamentTeam.id, teamId: tournamentTeam.teamId });
 
-    return created(res, tournamentTeam, "Équipe ajoutée au tournoi")
+    return created(res, "Équipe ajoutée au tournoi", tournamentTeam)
   } catch (error) {
     console.error("Erreur ajout équipe:", error)
     return badRequest(res, "Erreur lors de l'ajout de l'équipe")
@@ -303,7 +303,7 @@ export const removeTeamFromTournament = async (req: Request, res: Response) => {
       },
     })
 
-    return success(res, null, "Équipe retirée du tournoi")
+    return success(res, "Équipe retirée du tournoi", null)
   } catch (error) {
     console.error("Erreur retrait équipe:", error)
     return badRequest(res, "Erreur lors du retrait de l'équipe")
@@ -336,7 +336,7 @@ export const performDraw = async (req: Request, res: Response) => {
 
     // Temporairement désactivé pour permettre au serveur de démarrer
     console.log("🎲 Tirage au sort temporairement désactivé");
-    return success(res, { message: "Tirage au sort temporairement désactivé" });
+    return success(res, "Tirage au sort temporairement désactivé", { message: "Tirage au sort temporairement désactivé" });
   } catch (error) {
     console.error("Erreur lors du tirage au sort:", error)
     return badRequest(res, "Erreur lors du tirage au sort")
@@ -1074,7 +1074,7 @@ export const getStadiums = async (req: Request, res: Response) => {
       },
     });
 
-    return success(res, stadiums);
+    return success(res, "Stades récupérés avec succès", stadiums);
   } catch (error) {
     console.error("Erreur récupération stades:", error);
     return badRequest(res, "Erreur lors de la récupération des stades");

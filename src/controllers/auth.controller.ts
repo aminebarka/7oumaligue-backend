@@ -61,7 +61,7 @@ export const register = async (req: Request, res: Response) => {
       tenantId: user.tenantId,
     }
 
-    return created(res, { user: userData, token }, "Compte créé avec succès")
+    return created(res, "Compte créé avec succès", { user: userData, token })
   } catch (error) {
     console.error("Erreur lors de l'inscription:", error)
     return badRequest(res, "Erreur lors de la création du compte")
@@ -113,7 +113,7 @@ export const login = async (req: Request, res: Response) => {
       tenantId: user.tenantId,
     }
 
-    return success(res, { user: userData, token }, "Connexion réussie")
+    return success(res, "Connexion réussie", { user: userData, token })
   } catch (error) {
     console.error("Erreur lors de la connexion:", error)
     return badRequest(res, "Erreur lors de la connexion")
@@ -145,7 +145,7 @@ export const getProfile = async (req: Request, res: Response) => {
       return unauthorized(res, "Utilisateur non trouvé")
     }
 
-    return success(res, user)
+    return success(res, "Profil récupéré avec succès", user)
   } catch (error) {
     console.error("Erreur lors de la récupération du profil:", error)
     return badRequest(res, "Erreur lors de la récupération du profil")
@@ -192,7 +192,7 @@ export const updateProfile = async (req: Request, res: Response) => {
       },
     })
 
-    return success(res, updatedUser, "Profil mis à jour avec succès")
+    return success(res, "Profil mis à jour avec succès", updatedUser)
   } catch (error) {
     console.error("Erreur lors de la mise à jour du profil:", error)
     return badRequest(res, "Erreur lors de la mise à jour du profil")
@@ -234,7 +234,7 @@ export const changePassword = async (req: Request, res: Response) => {
       data: { password: hashedNewPassword },
     })
 
-    return success(res, null, "Mot de passe modifié avec succès")
+    return success(res, "Mot de passe modifié avec succès", null)
   } catch (error) {
     console.error("Erreur lors du changement de mot de passe:", error)
     return badRequest(res, "Erreur lors du changement de mot de passe")

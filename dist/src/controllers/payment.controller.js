@@ -55,13 +55,13 @@ class PaymentController {
                     });
                     break;
             }
-            return (0, apiResponse_1.success)(res, {
+            return (0, apiResponse_1.success)(res, 'Demande de paiement créée avec succès', {
                 transactionId: transaction.transactionId,
                 paymentUrl,
                 amount,
                 commission,
                 netAmount
-            }, 'Demande de paiement créée avec succès');
+            });
         }
         catch (error) {
             console.error('Erreur lors de la création du paiement:', error);
@@ -81,7 +81,7 @@ class PaymentController {
             if (!transaction) {
                 return (0, apiResponse_1.notFound)(res, 'Transaction non trouvée');
             }
-            return (0, apiResponse_1.success)(res, {
+            return (0, apiResponse_1.success)(res, 'Statut du paiement récupéré avec succès', {
                 transactionId: transaction.transactionId,
                 status: transaction.status,
                 amount: transaction.amount,
@@ -156,7 +156,7 @@ class PaymentController {
                 paymentMethods: this.groupByPaymentMethod(transactions),
                 monthlyStats: this.getMonthlyStats(transactions)
             };
-            return (0, apiResponse_1.success)(res, stats);
+            return (0, apiResponse_1.success)(res, 'Statistiques récupérées avec succès', stats);
         }
         catch (error) {
             console.error('Erreur lors de la récupération des statistiques:', error);

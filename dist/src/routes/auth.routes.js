@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.changePassword = exports.updateProfile = exports.getProfile = exports.login = exports.register = void 0;
+exports.getUserStats = exports.deleteUser = exports.updateUserRole = exports.getAllUsers = exports.changePassword = exports.updateProfile = exports.getProfile = exports.login = exports.register = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const database_1 = require("../config/database");
 const jwt_simple_1 = require("../config/jwt-simple");
@@ -11,6 +11,7 @@ const apiResponse_1 = require("../utils/apiResponse");
 const express_1 = __importDefault(require("express"));
 const auth_middleware_1 = require("../middleware/auth.middleware");
 const router = express_1.default.Router();
+console.log("🔧 Initialisation des routes d'authentification...");
 const validateRegistrationData = (data) => {
     const errors = [];
     if (!data.name || typeof data.name !== 'string' || data.name.trim().length < 2) {
@@ -76,7 +77,7 @@ const register = async (req, res) => {
             tenantId: user.tenantId,
         };
         console.log("✅ Inscription réussie pour:", email, "avec le rôle:", user.role);
-        return (0, apiResponse_1.created)(res, { user: userData, token }, "Compte créé avec succès");
+        return (0, apiResponse_1.created)(res, "Compte créé avec succès", { user: userData, token });
     }
     catch (error) {
         console.error("❌ Erreur lors de l'inscription:", error);
@@ -122,7 +123,7 @@ const login = async (req, res) => {
             role: user.role,
             tenantId: user.tenantId,
         };
-        return (0, apiResponse_1.success)(res, { user: userData, token }, "Connexion réussie");
+        return (0, apiResponse_1.success)(res, "Connexion réussie", { user: userData, token });
     }
     catch (error) {
         console.error("Erreur lors de la connexion:", error);
@@ -151,7 +152,7 @@ const getProfile = async (req, res) => {
         if (!user) {
             return (0, apiResponse_1.unauthorized)(res, "Utilisateur non trouvé");
         }
-        return (0, apiResponse_1.success)(res, user);
+        return (0, apiResponse_1.success)(res, "Profil récupéré avec succès", user);
     }
     catch (error) {
         console.error("Erreur lors de la récupération du profil:", error);
@@ -193,7 +194,7 @@ const updateProfile = async (req, res) => {
                 updatedAt: true,
             },
         });
-        return (0, apiResponse_1.success)(res, updatedUser, "Profil mis à jour avec succès");
+        return (0, apiResponse_1.success)(res, "Profil mis à jour avec succès", updatedUser);
     }
     catch (error) {
         console.error("Erreur lors de la mise à jour du profil:", error);
@@ -207,12 +208,6 @@ const changePassword = async (req, res) => {
     try {
         if (!userId) {
             return (0, apiResponse_1.unauthorized)(res, "Token invalide");
-        }
-        if (!currentPassword || !newPassword) {
-            return (0, apiResponse_1.badRequest)(res, "Ancien et nouveau mot de passe requis");
-        }
-        if (newPassword.length < 6) {
-            return (0, apiResponse_1.badRequest)(res, "Le nouveau mot de passe doit contenir au moins 6 caractères");
         }
         const user = await database_1.prisma.user.findUnique({
             where: { id: userId },
@@ -230,7 +225,7 @@ const changePassword = async (req, res) => {
             where: { id: userId },
             data: { password: hashedNewPassword },
         });
-        return (0, apiResponse_1.success)(res, null, "Mot de passe modifié avec succès");
+        return (0, apiResponse_1.success)(res, "Mot de passe modifié avec succès", null);
     }
     catch (error) {
         console.error("Erreur lors du changement de mot de passe:", error);
@@ -238,11 +233,152 @@ const changePassword = async (req, res) => {
     }
 };
 exports.changePassword = changePassword;
+const getAllUsers = async (req, res) => {
+    try {
+        if (req.user?.role !== 'admin') {
+            return (0, apiResponse_1.unauthorized)(res, "Accès non autorisé");
+        }
+        const users = await database_1.prisma.user.findMany({
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                tenantId: true,
+                createdAt: true,
+                updatedAt: true,
+                _count: {
+                    select: {
+                        socialPosts: true,
+                        teamFans: true,
+                        players: true,
+                        teams: true,
+                    }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+        return (0, apiResponse_1.success)(res, "Utilisateurs récupérés avec succès", users);
+    }
+    catch (error) {
+        console.error("Erreur lors de la récupération des utilisateurs:", error);
+        return (0, apiResponse_1.badRequest)(res, "Erreur lors de la récupération des utilisateurs");
+    }
+};
+exports.getAllUsers = getAllUsers;
+const updateUserRole = async (req, res) => {
+    const { userId } = req.params;
+    const { role } = req.body;
+    try {
+        if (req.user?.role !== 'admin') {
+            return (0, apiResponse_1.unauthorized)(res, "Accès non autorisé");
+        }
+        const validRoles = ['player', 'coach', 'admin'];
+        if (!validRoles.includes(role)) {
+            return (0, apiResponse_1.badRequest)(res, "Rôle invalide");
+        }
+        if (parseInt(userId) === req.user?.userId && role !== 'admin') {
+            return (0, apiResponse_1.badRequest)(res, "Vous ne pouvez pas modifier votre propre rôle d'administrateur");
+        }
+        const updatedUser = await database_1.prisma.user.update({
+            where: { id: parseInt(userId) },
+            data: { role },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                tenantId: true,
+                createdAt: true,
+                updatedAt: true,
+            }
+        });
+        return (0, apiResponse_1.success)(res, "Rôle utilisateur mis à jour avec succès", updatedUser);
+    }
+    catch (error) {
+        console.error("Erreur lors de la mise à jour du rôle:", error);
+        return (0, apiResponse_1.badRequest)(res, "Erreur lors de la mise à jour du rôle");
+    }
+};
+exports.updateUserRole = updateUserRole;
+const deleteUser = async (req, res) => {
+    const { userId } = req.params;
+    try {
+        if (req.user?.role !== 'admin') {
+            return (0, apiResponse_1.unauthorized)(res, "Accès non autorisé");
+        }
+        if (parseInt(userId) === req.user?.userId) {
+            return (0, apiResponse_1.badRequest)(res, "Vous ne pouvez pas supprimer votre propre compte");
+        }
+        await database_1.prisma.user.delete({
+            where: { id: parseInt(userId) }
+        });
+        return (0, apiResponse_1.success)(res, "Utilisateur supprimé avec succès", null);
+    }
+    catch (error) {
+        console.error("Erreur lors de la suppression de l'utilisateur:", error);
+        return (0, apiResponse_1.badRequest)(res, "Erreur lors de la suppression de l'utilisateur");
+    }
+};
+exports.deleteUser = deleteUser;
+const getUserStats = async (req, res) => {
+    try {
+        if (req.user?.role !== 'admin') {
+            return (0, apiResponse_1.unauthorized)(res, "Accès non autorisé");
+        }
+        const [totalUsers, playerCount, coachCount, adminCount, recentUsers] = await Promise.all([
+            database_1.prisma.user.count(),
+            database_1.prisma.user.count({ where: { role: 'player' } }),
+            database_1.prisma.user.count({ where: { role: 'coach' } }),
+            database_1.prisma.user.count({ where: { role: 'admin' } }),
+            database_1.prisma.user.findMany({
+                where: {
+                    createdAt: {
+                        gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+                    }
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    role: true,
+                    createdAt: true
+                },
+                orderBy: { createdAt: 'desc' },
+                take: 10
+            })
+        ]);
+        const stats = {
+            total: totalUsers,
+            byRole: {
+                players: playerCount,
+                coaches: coachCount,
+                admins: adminCount
+            },
+            recentUsers
+        };
+        return (0, apiResponse_1.success)(res, "Statistiques utilisateurs récupérées avec succès", stats);
+    }
+    catch (error) {
+        console.error("Erreur lors de la récupération des statistiques:", error);
+        return (0, apiResponse_1.badRequest)(res, "Erreur lors de la récupération des statistiques");
+    }
+};
+exports.getUserStats = getUserStats;
 router.post("/register", exports.register);
 router.post("/login", exports.login);
 router.get("/profile", exports.getProfile);
 router.put("/profile", exports.updateProfile);
 router.put("/change-password", exports.changePassword);
+console.log("🔧 Enregistrement des routes de gestion des utilisateurs...");
+router.get("/users", auth_middleware_1.authenticateToken, exports.getAllUsers);
+console.log("✅ Route GET /users enregistrée");
+router.get("/users/stats", auth_middleware_1.authenticateToken, exports.getUserStats);
+console.log("✅ Route GET /users/stats enregistrée");
+router.put("/users/:userId/role", auth_middleware_1.authenticateToken, exports.updateUserRole);
+console.log("✅ Route PUT /users/:userId/role enregistrée");
+router.delete("/users/:userId", auth_middleware_1.authenticateToken, exports.deleteUser);
+console.log("✅ Route DELETE /users/:userId enregistrée");
 router.get("/debug", auth_middleware_1.authenticateToken, (req, res) => {
     console.log("🔍 Debug - Informations d'authentification:", {
         userId: req.user?.userId,
@@ -270,6 +406,42 @@ router.get("/debug", auth_middleware_1.authenticateToken, (req, res) => {
             timestamp: new Date().toISOString()
         }
     });
+});
+router.get("/test-db", auth_middleware_1.authenticateToken, async (req, res) => {
+    try {
+        console.log("🔍 Test de la base de données...");
+        const userCount = await database_1.prisma.user.count();
+        console.log("✅ Nombre d'utilisateurs:", userCount);
+        const testUser = await database_1.prisma.user.findFirst({
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                tenantId: true,
+                createdAt: true,
+                updatedAt: true,
+            }
+        });
+        console.log("✅ Utilisateur de test:", testUser);
+        return res.json({
+            success: true,
+            message: "Test de base de données réussi",
+            data: {
+                userCount,
+                testUser,
+                timestamp: new Date().toISOString()
+            }
+        });
+    }
+    catch (error) {
+        console.error("❌ Erreur lors du test de base de données:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Erreur lors du test de base de données",
+            error: error.message
+        });
+    }
 });
 exports.default = router;
 //# sourceMappingURL=auth.routes.js.map

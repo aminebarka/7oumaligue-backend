@@ -36,7 +36,7 @@ router.get('/community/leagues', async (req, res) => {
                 createdAt: 'desc'
             }
         });
-        return (0, apiResponse_1.success)(res, leagues);
+        return (0, apiResponse_1.success)(res, "Ligues récupérées avec succès", leagues);
     }
     catch (error) {
         console.error('Erreur lors de la récupération des ligues:', error);
@@ -65,7 +65,7 @@ router.get('/community/standings', async (req, res) => {
                 { goalsFor: 'desc' }
             ]
         });
-        return (0, apiResponse_1.success)(res, standings);
+        return (0, apiResponse_1.success)(res, "Classements récupérés avec succès", standings);
     }
     catch (error) {
         console.error('Erreur lors de la récupération du classement:', error);
@@ -87,7 +87,7 @@ router.post('/feed', auth_middleware_1.authenticateToken, async (req, res) => {
                 teamId: null
             }
         });
-        return (0, apiResponse_1.success)(res, post, 'Post créé avec succès');
+        return (0, apiResponse_1.success)(res, 'Post créé avec succès', post);
     }
     catch (error) {
         console.error('Erreur lors de la création du post:', error);
@@ -126,7 +126,7 @@ router.get('/feed', async (req, res) => {
             take: parseInt(limit)
         });
         const total = await prisma.socialPost.count({ where: whereClause });
-        return (0, apiResponse_1.success)(res, {
+        return (0, apiResponse_1.success)(res, "Posts récupérés avec succès", {
             posts,
             pagination: {
                 page: parseInt(page),
@@ -165,7 +165,7 @@ router.post('/votes', auth_middleware_1.authenticateToken, async (req, res) => {
                 tournamentId: String(tournamentId)
             }
         });
-        return (0, apiResponse_1.success)(res, vote, 'Vote enregistré avec succès');
+        return (0, apiResponse_1.success)(res, 'Vote enregistré avec succès', vote);
     }
     catch (error) {
         console.error('Erreur lors de l\'enregistrement du vote:', error);
@@ -220,7 +220,7 @@ router.get('/votes', async (req, res) => {
                 target
             };
         }));
-        return (0, apiResponse_1.success)(res, enrichedVotes);
+        return (0, apiResponse_1.success)(res, "Votes récupérés avec succès", enrichedVotes);
     }
     catch (error) {
         console.error('Erreur lors de la récupération des votes:', error);
@@ -251,7 +251,7 @@ router.post('/teams/:id/fans', auth_middleware_1.authenticateToken, async (req, 
                 user: true
             }
         });
-        return (0, apiResponse_1.success)(res, fan, 'Vous êtes maintenant fan de cette équipe');
+        return (0, apiResponse_1.success)(res, 'Vous êtes maintenant fan de cette équipe', fan);
     }
     catch (error) {
         console.error('Erreur lors de l\'ajout du fan:', error);
@@ -281,7 +281,7 @@ router.get('/teams/:id/fans', async (req, res) => {
             take: parseInt(limit)
         });
         const total = await prisma.teamFan.count({ where: whereClause });
-        return (0, apiResponse_1.success)(res, {
+        return (0, apiResponse_1.success)(res, "Fans récupérés avec succès", {
             fans,
             pagination: {
                 page: parseInt(page),
@@ -314,7 +314,7 @@ router.post('/community/leagues', auth_middleware_1.authenticateToken, async (re
                 status: 'active'
             }
         });
-        return (0, apiResponse_1.success)(res, league, 'Ligue communautaire créée avec succès');
+        return (0, apiResponse_1.success)(res, 'Ligue communautaire créée avec succès', league);
     }
     catch (error) {
         console.error('Erreur lors de la création de la ligue:', error);
@@ -343,7 +343,7 @@ router.post('/community/leagues/:id/join', auth_middleware_1.authenticateToken, 
                 teamId: String(teamId),
             }
         });
-        return (0, apiResponse_1.success)(res, participant, 'Équipe ajoutée à la ligue');
+        return (0, apiResponse_1.success)(res, 'Équipe ajoutée à la ligue', participant);
     }
     catch (error) {
         console.error('Erreur lors de l\'ajout à la ligue:', error);

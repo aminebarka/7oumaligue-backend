@@ -49,7 +49,7 @@ router.post('/tournaments/ai/suggestions', authenticateToken, async (req, res) =
       }
     ]
 
-    return success(res, suggestions)
+    return success(res, "Suggestions récupérées avec succès", suggestions)
   } catch (error) {
     console.error('Erreur lors de la génération des suggestions:', error)
     return badRequest(res, 'Erreur lors de la génération des suggestions')
@@ -77,7 +77,7 @@ router.post('/tournaments/ai/personalized', authenticateToken, async (req, res) 
       isRecommended: true
     }
 
-    return success(res, recommendation)
+    return success(res, "Recommandation générée avec succès", recommendation)
   } catch (error) {
     console.error('Erreur lors de la génération de la recommandation:', error)
     return badRequest(res, 'Erreur lors de la génération de la recommandation')
@@ -108,7 +108,7 @@ router.post('/social/posts', authenticateToken, async (req, res) => {
       }
     })
 
-    return success(res, post, 'Post créé avec succès')
+    return success(res, 'Post créé avec succès', post)
   } catch (error) {
     console.error('Erreur lors de la création du post:', error)
     return badRequest(res, 'Erreur lors de la création du post')
@@ -154,7 +154,7 @@ router.get('/social/posts', async (req, res) => {
 
     const total = await prisma.socialPost.count({ where: whereClause })
 
-    return success(res, {
+    return success(res, "Posts récupérés avec succès", {
       posts,
       pagination: {
         page: parseInt(page as string),
@@ -190,7 +190,7 @@ router.post('/social/posts/:id/like', authenticateToken, async (req, res) => {
       }
     })
 
-    return success(res, { message: 'Post liké' })
+    return success(res, 'Post liké', { message: 'Post liké' })
   } catch (error) {
     console.error('Erreur lors du like:', error)
     return badRequest(res, 'Erreur lors du like')
@@ -219,7 +219,7 @@ router.post('/social/posts/:id/comment', authenticateToken, async (req, res) => 
       }
     })
 
-    return success(res, { message: 'Commentaire ajouté' })
+    return success(res, 'Commentaire ajouté', { message: 'Commentaire ajouté' })
   } catch (error) {
     console.error('Erreur lors du commentaire:', error)
     return badRequest(res, 'Erreur lors du commentaire')
@@ -247,7 +247,7 @@ router.post('/social/posts/:id/share', authenticateToken, async (req, res) => {
       }
     })
 
-    return success(res, { message: 'Post partagé' })
+    return success(res, 'Post partagé', { message: 'Post partagé' })
   } catch (error) {
     console.error('Erreur lors du partage:', error)
     return badRequest(res, 'Erreur lors du partage')
@@ -280,7 +280,7 @@ router.post('/payments/create', authenticateToken, async (req, res) => {
       }
     })
 
-    return success(res, transaction, 'Paiement créé avec succès')
+    return success(res, 'Paiement créé avec succès', transaction)
   } catch (error) {
     console.error('Erreur lors de la création du paiement:', error)
     return badRequest(res, 'Erreur lors de la création du paiement')
@@ -314,7 +314,7 @@ router.get('/payments/transactions', authenticateToken, async (req, res) => {
 
     const total = await prisma.paymentTransaction.count({ where: whereClause })
 
-    return success(res, {
+    return success(res, "Transactions récupérées avec succès", {
       transactions,
       pagination: {
         page: parseInt(page as string),
@@ -345,7 +345,7 @@ router.get('/payments/stats', authenticateToken, async (req, res) => {
       where: { status: 'completed' }
     })
 
-    return success(res, {
+    return success(res, "Statistiques récupérées avec succès", {
       totalTransactions,
       totalAmount: totalAmount._sum.amount || 0,
       pendingTransactions,
@@ -372,7 +372,7 @@ router.get('/players/:id/stats', async (req, res) => {
       }
     })
 
-    return success(res, stats)
+    return success(res, "Statistiques du joueur récupérées avec succès", stats)
   } catch (error) {
     console.error('Erreur lors de la récupération des statistiques:', error)
     return badRequest(res, 'Erreur lors de la récupération des statistiques')
@@ -394,7 +394,7 @@ router.get('/players/:id/badges', async (req, res) => {
       }
     })
 
-    return success(res, badges)
+    return success(res, "Badges du joueur récupérés avec succès", badges)
   } catch (error) {
     console.error('Erreur lors de la récupération des badges:', error)
     return badRequest(res, 'Erreur lors de la récupération des badges')
@@ -421,7 +421,7 @@ router.get('/stadia/:id', async (req, res) => {
       return notFound(res, 'Stade non trouvé')
     }
 
-    return success(res, stadium)
+    return success(res, "Stade récupéré avec succès", stadium)
   } catch (error) {
     console.error('Erreur lors de la récupération du stade:', error)
     return badRequest(res, 'Erreur lors de la récupération du stade')
@@ -445,7 +445,7 @@ router.get('/matches/current', async (req, res) => {
       }
     })
 
-    return success(res, currentMatch)
+    return success(res, "Match en cours récupéré avec succès", currentMatch)
   } catch (error) {
     console.error('Erreur lors de la récupération du match en cours:', error)
     return badRequest(res, 'Erreur lors de la récupération du match en cours')
@@ -475,7 +475,7 @@ router.get('/matches/next', async (req, res) => {
       take: parseInt(limit as string)
     })
 
-    return success(res, upcomingMatches)
+    return success(res, "Matches à venir récupérés avec succès", upcomingMatches)
   } catch (error) {
     console.error('Erreur lors de la récupération des prochains matchs:', error)
     return badRequest(res, 'Erreur lors de la récupération des prochains matchs')
@@ -509,7 +509,7 @@ router.get('/matches/all', async (req, res) => {
       }
     })
 
-    return success(res, matches)
+    return success(res, "Matches récupérés avec succès", matches)
   } catch (error) {
     console.error('Erreur lors de la récupération des matchs:', error)
     return badRequest(res, 'Erreur lors de la récupération des matchs')

@@ -52,7 +52,7 @@ router.get("/all", authenticateToken, async (req, res) => {
 
     console.log(`✅ Données récupérées: ${data.tournaments} tournois, ${data.teams} équipes, ${data.players} joueurs, ${data.matches} matchs`)
 
-    return success(res, data, "Données récupérées avec succès")
+    return success(res, "Données récupérées avec succès", data)
   } catch (error) {
     console.error("❌ Erreur lors de la récupération des données:", error)
     return res.status(500).json({

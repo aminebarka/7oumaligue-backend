@@ -39,7 +39,7 @@ router.post('/tournaments/ai/suggestions', auth_middleware_1.authenticateToken, 
                 isRecommended: false
             }
         ];
-        return (0, apiResponse_1.success)(res, suggestions);
+        return (0, apiResponse_1.success)(res, "Suggestions récupérées avec succès", suggestions);
     }
     catch (error) {
         console.error('Erreur lors de la génération des suggestions:', error);
@@ -63,7 +63,7 @@ router.post('/tournaments/ai/personalized', auth_middleware_1.authenticateToken,
             ],
             isRecommended: true
         };
-        return (0, apiResponse_1.success)(res, recommendation);
+        return (0, apiResponse_1.success)(res, "Recommandation générée avec succès", recommendation);
     }
     catch (error) {
         console.error('Erreur lors de la génération de la recommandation:', error);
@@ -84,7 +84,7 @@ router.post('/social/posts', auth_middleware_1.authenticateToken, async (req, re
                 playerId: req.user?.userId ? String(req.user.userId) : null
             }
         });
-        return (0, apiResponse_1.success)(res, post, 'Post créé avec succès');
+        return (0, apiResponse_1.success)(res, 'Post créé avec succès', post);
     }
     catch (error) {
         console.error('Erreur lors de la création du post:', error);
@@ -123,7 +123,7 @@ router.get('/social/posts', async (req, res) => {
             take: parseInt(limit)
         });
         const total = await prisma.socialPost.count({ where: whereClause });
-        return (0, apiResponse_1.success)(res, {
+        return (0, apiResponse_1.success)(res, "Posts récupérés avec succès", {
             posts,
             pagination: {
                 page: parseInt(page),
@@ -153,7 +153,7 @@ router.post('/social/posts/:id/like', auth_middleware_1.authenticateToken, async
                 likes: post.likes + 1
             }
         });
-        return (0, apiResponse_1.success)(res, { message: 'Post liké' });
+        return (0, apiResponse_1.success)(res, 'Post liké', { message: 'Post liké' });
     }
     catch (error) {
         console.error('Erreur lors du like:', error);
@@ -176,7 +176,7 @@ router.post('/social/posts/:id/comment', auth_middleware_1.authenticateToken, as
                 comments: post.comments + 1
             }
         });
-        return (0, apiResponse_1.success)(res, { message: 'Commentaire ajouté' });
+        return (0, apiResponse_1.success)(res, 'Commentaire ajouté', { message: 'Commentaire ajouté' });
     }
     catch (error) {
         console.error('Erreur lors du commentaire:', error);
@@ -198,7 +198,7 @@ router.post('/social/posts/:id/share', auth_middleware_1.authenticateToken, asyn
                 shares: post.shares + 1
             }
         });
-        return (0, apiResponse_1.success)(res, { message: 'Post partagé' });
+        return (0, apiResponse_1.success)(res, 'Post partagé', { message: 'Post partagé' });
     }
     catch (error) {
         console.error('Erreur lors du partage:', error);
@@ -220,7 +220,7 @@ router.post('/payments/create', auth_middleware_1.authenticateToken, async (req,
                 status: 'pending'
             }
         });
-        return (0, apiResponse_1.success)(res, transaction, 'Paiement créé avec succès');
+        return (0, apiResponse_1.success)(res, 'Paiement créé avec succès', transaction);
     }
     catch (error) {
         console.error('Erreur lors de la création du paiement:', error);
@@ -248,7 +248,7 @@ router.get('/payments/transactions', auth_middleware_1.authenticateToken, async 
             take: parseInt(limit)
         });
         const total = await prisma.paymentTransaction.count({ where: whereClause });
-        return (0, apiResponse_1.success)(res, {
+        return (0, apiResponse_1.success)(res, "Transactions récupérées avec succès", {
             transactions,
             pagination: {
                 page: parseInt(page),
@@ -277,7 +277,7 @@ router.get('/payments/stats', auth_middleware_1.authenticateToken, async (req, r
         const completedTransactions = await prisma.paymentTransaction.count({
             where: { status: 'completed' }
         });
-        return (0, apiResponse_1.success)(res, {
+        return (0, apiResponse_1.success)(res, "Statistiques récupérées avec succès", {
             totalTransactions,
             totalAmount: totalAmount._sum.amount || 0,
             pendingTransactions,
@@ -301,7 +301,7 @@ router.get('/players/:id/stats', async (req, res) => {
                 createdAt: 'desc'
             }
         });
-        return (0, apiResponse_1.success)(res, stats);
+        return (0, apiResponse_1.success)(res, "Statistiques du joueur récupérées avec succès", stats);
     }
     catch (error) {
         console.error('Erreur lors de la récupération des statistiques:', error);
@@ -320,7 +320,7 @@ router.get('/players/:id/badges', async (req, res) => {
                 earnedAt: 'desc'
             }
         });
-        return (0, apiResponse_1.success)(res, badges);
+        return (0, apiResponse_1.success)(res, "Badges du joueur récupérés avec succès", badges);
     }
     catch (error) {
         console.error('Erreur lors de la récupération des badges:', error);
@@ -343,7 +343,7 @@ router.get('/stadia/:id', async (req, res) => {
         if (!stadium) {
             return (0, apiResponse_1.notFound)(res, 'Stade non trouvé');
         }
-        return (0, apiResponse_1.success)(res, stadium);
+        return (0, apiResponse_1.success)(res, "Stade récupéré avec succès", stadium);
     }
     catch (error) {
         console.error('Erreur lors de la récupération du stade:', error);
@@ -365,7 +365,7 @@ router.get('/matches/current', async (req, res) => {
                 date: 'desc'
             }
         });
-        return (0, apiResponse_1.success)(res, currentMatch);
+        return (0, apiResponse_1.success)(res, "Match en cours récupéré avec succès", currentMatch);
     }
     catch (error) {
         console.error('Erreur lors de la récupération du match en cours:', error);
@@ -392,7 +392,7 @@ router.get('/matches/next', async (req, res) => {
             },
             take: parseInt(limit)
         });
-        return (0, apiResponse_1.success)(res, upcomingMatches);
+        return (0, apiResponse_1.success)(res, "Matches à venir récupérés avec succès", upcomingMatches);
     }
     catch (error) {
         console.error('Erreur lors de la récupération des prochains matchs:', error);
@@ -420,7 +420,7 @@ router.get('/matches/all', async (req, res) => {
                 date: 'desc'
             }
         });
-        return (0, apiResponse_1.success)(res, matches);
+        return (0, apiResponse_1.success)(res, "Matches récupérés avec succès", matches);
     }
     catch (error) {
         console.error('Erreur lors de la récupération des matchs:', error);

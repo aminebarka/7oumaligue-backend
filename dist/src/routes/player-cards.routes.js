@@ -56,7 +56,7 @@ router.get('/players/:id/card', async (req, res) => {
             res.setHeader('Cache-Control', 'public, max-age=3600');
             return res.send(cardImage);
         }
-        return (0, apiResponse_1.success)(res, {
+        return (0, apiResponse_1.success)(res, "Carte du joueur récupérée avec succès", {
             player: {
                 id: player.id,
                 name: player.name,
@@ -133,7 +133,7 @@ router.get('/players/:id/achievements', async (req, res) => {
     try {
         const { id } = req.params;
         const achievements = await getPlayerAchievements(parseInt(id));
-        return (0, apiResponse_1.success)(res, achievements);
+        return (0, apiResponse_1.success)(res, "Réalisations du joueur récupérées avec succès", achievements);
     }
     catch (error) {
         console.error('Erreur lors de la récupération des réalisations:', error);
@@ -161,7 +161,7 @@ router.get('/players/:id/reputation', async (req, res) => {
         }), { goals: 0, assists: 0, matches: 0, rating: 0 });
         const reputationLevel = calculateReputationLevel(totalStats, player.playerBadges.length);
         const reputationPoints = calculateReputationPoints(totalStats, player.playerBadges);
-        return (0, apiResponse_1.success)(res, {
+        return (0, apiResponse_1.success)(res, "Réputation du joueur récupérée avec succès", {
             level: reputationLevel,
             points: reputationPoints,
             stats: totalStats,
@@ -192,7 +192,7 @@ router.patch('/players/:id/reputation', auth_middleware_1.authenticateToken, asy
                 modifiedBy: req.user?.userId || 0
             }
         });
-        return (0, apiResponse_1.success)(res, { message: 'Réputation mise à jour' });
+        return (0, apiResponse_1.success)(res, 'Réputation mise à jour', { message: 'Réputation mise à jour' });
     }
     catch (error) {
         console.error('Erreur lors de la mise à jour de la réputation:', error);

@@ -30,7 +30,7 @@ export const createStadium = async (req: Request, res: Response) => {
       },
     });
 
-    return created(res, stadium, "Stade créé avec succès");
+    return created(res, "Stade créé avec succès", stadium);
   } catch (error) {
     console.error("Erreur création stade:", error);
     return badRequest(res, "Erreur lors de la création du stade");
@@ -45,7 +45,7 @@ export const getStadiums = async (req: Request, res: Response) => {
       }
     });
 
-    return success(res, stadiums);
+    return success(res, "Stades récupérés avec succès", stadiums);
   } catch (error) {
     console.error("Erreur récupération stades:", error);
     return badRequest(res, "Erreur lors de la récupération des stades");
@@ -66,7 +66,7 @@ export const getStadiumById = async (req: Request, res: Response) => {
       return notFound(res, "Stade non trouvé");
     }
 
-    return success(res, stadium);
+    return success(res, "Stade récupéré avec succès", stadium);
   } catch (error) {
     console.error("Erreur récupération stade:", error);
     return badRequest(res, "Erreur lors de la récupération du stade");
@@ -101,7 +101,7 @@ export const updateStadium = async (req: Request, res: Response) => {
       data: updateData,
     });
 
-    return success(res, stadium, "Stade mis à jour avec succès");
+    return success(res, "Stade mis à jour avec succès", stadium);
   } catch (error) {
     console.error("Erreur mise à jour stade:", error);
     return badRequest(res, "Erreur lors de la mise à jour du stade");
@@ -129,7 +129,7 @@ export const deleteStadium = async (req: Request, res: Response) => {
       },
     });
 
-    return success(res, null, "Stade supprimé avec succès");
+    return success(res, "Stade supprimé avec succès", null);
   } catch (error) {
     console.error("Erreur suppression stade:", error);
     return badRequest(res, "Erreur lors de la suppression du stade");
@@ -152,7 +152,7 @@ export const getStadiumsByCity = async (req: Request, res: Response) => {
       }
     });
 
-    return success(res, stadiums);
+    return success(res, "Stades par ville récupérés avec succès", stadiums);
   } catch (error) {
     console.error("Erreur récupération stades par ville:", error);
     return badRequest(res, "Erreur lors de la récupération des stades");
@@ -170,7 +170,7 @@ export const getFavoriteStadiums = async (req: Request, res: Response) => {
       }
     });
 
-    return success(res, stadiums);
+    return success(res, "Stades favoris récupérés avec succès", stadiums);
   } catch (error) {
     console.error("Erreur récupération stades favoris:", error);
     return badRequest(res, "Erreur lors de la récupération des stades favoris");

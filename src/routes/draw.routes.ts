@@ -99,7 +99,7 @@ router.post('/tournaments/:id/draw', authenticateToken, async (req, res) => {
     // Émettre un événement de tirage (pour WebSocket)
     emitDrawEvent(parseInt(tournament.id), groups)
 
-    return success(res, {
+    return success(res, 'Tirage effectué avec succès', {
       message: 'Tirage effectué avec succès',
       groups: groups.map(group => ({
         name: group.name,
@@ -170,7 +170,7 @@ router.get('/tournaments/:id/draw-animation', authMiddleware, async (req, res) =
       )
     }
 
-    return success(res, drawData)
+    return success(res, "Animation de tirage récupérée avec succès", drawData)
   } catch (error) {
     console.error('Erreur lors de la récupération de l\'animation:', error)
     return badRequest(res, 'Erreur lors de la récupération de l\'animation')
@@ -217,7 +217,7 @@ router.delete('/tournaments/:id/draw', authenticateToken, async (req, res) => {
       }
     })
 
-    return success(res, { message: 'Tirage annulé avec succès' })
+    return success(res, 'Tirage annulé avec succès', { message: 'Tirage annulé avec succès' })
   } catch (error) {
     console.error('Erreur lors de l\'annulation du tirage:', error)
     return badRequest(res, 'Erreur lors de l\'annulation du tirage')

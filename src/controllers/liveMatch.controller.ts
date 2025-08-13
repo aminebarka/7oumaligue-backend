@@ -63,10 +63,10 @@ export const getLiveMatchState = async (req: Request, res: Response) => {
       updatedAt: new Date(),
     };
 
-    return success(res, {
+    return success(res, "État en direct récupéré", {
       liveState: defaultState,
       events: [],
-    }, "État en direct récupéré");
+    });
 
     /*
     if (!liveState) {
@@ -176,7 +176,7 @@ export const startLiveMatch = async (req: Request, res: Response) => {
       updatedAt: new Date(),
     };
 
-    return success(res, liveState, "Match démarré en direct");
+    return success(res, "Match démarré en direct", liveState);
   } catch (error) {
     console.error("Erreur lors du démarrage du match:", error);
     return badRequest(res, "Erreur lors du démarrage du match");
@@ -242,7 +242,7 @@ export const togglePauseMatch = async (req: Request, res: Response) => {
       updatedAt: new Date(),
     };
 
-    return success(res, updatedState, "État de pause mis à jour");
+    return success(res, "État de pause mis à jour", updatedState);
   } catch (error) {
     console.error("Erreur lors de la mise à jour de la pause:", error);
     return badRequest(res, "Erreur lors de la mise à jour de la pause");
@@ -309,7 +309,7 @@ export const endLiveMatch = async (req: Request, res: Response) => {
       updatedAt: new Date(),
     };
 
-    return success(res, updatedState, "Match terminé");
+    return success(res, "Match terminé", updatedState);
   } catch (error) {
     console.error("Erreur lors de la fin du match:", error);
     return badRequest(res, "Erreur lors de la fin du match");
@@ -376,7 +376,7 @@ export const updateMatchTime = async (req: Request, res: Response) => {
       updatedAt: new Date(),
     };
 
-    return success(res, updatedState, "Temps du match mis à jour");
+    return success(res, "Temps du match mis à jour", updatedState);
   } catch (error) {
     console.error("Erreur lors de la mise à jour du temps:", error);
     return badRequest(res, "Erreur lors de la mise à jour du temps");
@@ -430,7 +430,7 @@ export const updateLiveMatchScore = async (req: Request, res: Response) => {
       },
     });
 
-    return success(res, updatedMatch, "Score mis à jour avec succès");
+    return success(res, "Score mis à jour avec succès", updatedMatch);
   } catch (error) {
     console.error("Erreur mise à jour score live:", error);
     return badRequest(res, "Erreur lors de la mise à jour du score");
@@ -492,7 +492,7 @@ export const addMatchEvent = async (req: Request, res: Response) => {
       updatedAt: new Date(),
     };
 
-    return success(res, event, "Événement ajouté");
+    return success(res, "Événement ajouté", event);
   } catch (error) {
     console.error("Erreur lors de l'ajout de l'événement:", error);
     return badRequest(res, "Erreur lors de l'ajout de l'événement");
@@ -520,7 +520,7 @@ export const deleteMatchEvent = async (req: Request, res: Response) => {
     */
 
     // Version temporaire
-    return success(res, null, "Événement supprimé");
+    return success(res, "Événement supprimé", null);
   } catch (error) {
     console.error("Erreur lors de la suppression de l'événement:", error);
     return badRequest(res, "Erreur lors de la suppression de l'événement");
@@ -554,7 +554,7 @@ export const getMatchEvents = async (req: Request, res: Response) => {
     // Version temporaire - retourner un tableau vide
     const events: any[] = [];
 
-    return success(res, events, "Événements récupérés");
+    return success(res, "Événements récupérés", events);
   } catch (error) {
     console.error("Erreur lors de la récupération des événements:", error);
     return badRequest(res, "Erreur lors de la récupération des événements");

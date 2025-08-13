@@ -73,7 +73,7 @@ const createPlayer = async (req, res) => {
                 });
             }
         }
-        return (0, apiResponse_1.created)(res, player, "Joueur créé avec succès");
+        return (0, apiResponse_1.created)(res, "Joueur créé avec succès", player);
     }
     catch (error) {
         console.error("Erreur création joueur:", error);
@@ -114,7 +114,7 @@ const getPlayers = async (req, res) => {
             },
             orderBy: [{ teamId: "asc" }, { jerseyNumber: "asc" }, { name: "asc" }],
         });
-        return (0, apiResponse_1.success)(res, players);
+        return (0, apiResponse_1.success)(res, "Joueurs récupérés avec succès", players);
     }
     catch (error) {
         console.error("Erreur récupération joueurs:", error);
@@ -151,7 +151,7 @@ const getPlayerById = async (req, res) => {
         if (!player) {
             return (0, apiResponse_1.notFound)(res, "Joueur non trouvé");
         }
-        return (0, apiResponse_1.success)(res, player);
+        return (0, apiResponse_1.success)(res, "Joueur récupéré avec succès", player);
     }
     catch (error) {
         console.error("Erreur récupération joueur:", error);
@@ -260,7 +260,7 @@ const updatePlayer = async (req, res) => {
                 }
             }
         }
-        return (0, apiResponse_1.success)(res, player, "Joueur mis à jour");
+        return (0, apiResponse_1.success)(res, "Joueur mis à jour", player);
     }
     catch (error) {
         console.error("Erreur mise à jour joueur:", error);
@@ -295,7 +295,7 @@ const deletePlayer = async (req, res) => {
         await database_1.prisma.player.delete({
             where: { id: id },
         });
-        return (0, apiResponse_1.success)(res, null, "Joueur supprimé");
+        return (0, apiResponse_1.success)(res, "Joueur supprimé", null);
     }
     catch (error) {
         console.error("Erreur suppression joueur:", error);
@@ -313,7 +313,7 @@ const getPlayersByTeam = async (req, res) => {
             },
             orderBy: [{ jerseyNumber: "asc" }, { name: "asc" }],
         });
-        return (0, apiResponse_1.success)(res, players);
+        return (0, apiResponse_1.success)(res, "Joueurs par équipe récupérés avec succès", players);
     }
     catch (error) {
         console.error("Erreur récupération joueurs par équipe:", error);

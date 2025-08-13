@@ -90,7 +90,7 @@ export const createPlayer = async (req: Request, res: Response) => {
       }
     }
 
-    return created(res, player, "Joueur créé avec succès")
+    return created(res, "Joueur créé avec succès", player)
   } catch (error) {
     console.error("Erreur création joueur:", error)
     return badRequest(res, "Erreur lors de la création du joueur")
@@ -136,7 +136,7 @@ export const getPlayers = async (req: Request, res: Response) => {
       orderBy: [{ teamId: "asc" }, { jerseyNumber: "asc" }, { name: "asc" }],
     })
 
-    return success(res, players)
+    return success(res, "Joueurs récupérés avec succès", players)
   } catch (error) {
     console.error("Erreur récupération joueurs:", error)
     return badRequest(res, "Erreur lors de la récupération des joueurs")
@@ -175,7 +175,7 @@ export const getPlayerById = async (req: Request, res: Response) => {
       return notFound(res, "Joueur non trouvé")
     }
 
-    return success(res, player)
+    return success(res, "Joueur récupéré avec succès", player)
   } catch (error) {
     console.error("Erreur récupération joueur:", error)
     return badRequest(res, "Erreur lors de la récupération du joueur")
@@ -301,7 +301,7 @@ export const updatePlayer = async (req: Request, res: Response) => {
       }
     }
 
-    return success(res, player, "Joueur mis à jour")
+    return success(res, "Joueur mis à jour", player)
   } catch (error) {
     console.error("Erreur mise à jour joueur:", error)
     return badRequest(res, "Erreur lors de la mise à jour du joueur")
@@ -341,7 +341,7 @@ export const deletePlayer = async (req: Request, res: Response) => {
       where: { id: id },
     })
 
-    return success(res, null, "Joueur supprimé")
+    return success(res, "Joueur supprimé", null)
   } catch (error) {
     console.error("Erreur suppression joueur:", error)
     return badRequest(res, "Erreur lors de la suppression du joueur")
@@ -360,7 +360,7 @@ export const getPlayersByTeam = async (req: Request, res: Response) => {
       orderBy: [{ jerseyNumber: "asc" }, { name: "asc" }],
     })
 
-    return success(res, players)
+    return success(res, "Joueurs par équipe récupérés avec succès", players)
   } catch (error) {
     console.error("Erreur récupération joueurs par équipe:", error)
     return badRequest(res, "Erreur lors de la récupération des joueurs")

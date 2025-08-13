@@ -27,14 +27,16 @@ const logger_1 = require("./utils/logger");
 const error_middleware_1 = require("./middleware/error.middleware");
 const cors_middleware_1 = require("./middleware/cors.middleware");
 const database_1 = require("./config/database");
-const authRoutes = require('./routes/auth.routes').default;
-const tournamentRoutes = require('./routes/tournament.routes').default;
-const teamRoutes = require('./routes/team.routes').default;
-const playerRoutes = require('./routes/player.routes').default;
-const matchRoutes = require('./routes/match.routes').default;
-const dataRoutes = require('./routes/data.routes').default;
-const liveMatchRoutes = require('./routes/liveMatch.routes').default;
-const stadiumRoutes = require('./routes/stadium.routes').default;
+const auth_routes_1 = __importDefault(require("./routes/auth.routes"));
+const tournament_routes_1 = __importDefault(require("./routes/tournament.routes"));
+const team_routes_1 = __importDefault(require("./routes/team.routes"));
+const player_routes_1 = __importDefault(require("./routes/player.routes"));
+const match_routes_1 = __importDefault(require("./routes/match.routes"));
+const data_routes_1 = __importDefault(require("./routes/data.routes"));
+const liveMatch_routes_1 = __importDefault(require("./routes/liveMatch.routes"));
+const stadium_routes_1 = __importDefault(require("./routes/stadium.routes"));
+const reservation_routes_1 = __importDefault(require("./routes/reservation.routes"));
+const academy_routes_1 = __importDefault(require("./routes/academy.routes"));
 const app = (0, express_1.default)();
 const PORT = Number(process.env.PORT) || 8080;
 const HOST = process.env.HOST || '0.0.0.0';
@@ -129,6 +131,40 @@ app.get("/health", (req, res) => {
 app.get('/api/test', (req, res) => {
     res.json({ success: true, message: 'Serveur fonctionnel' });
 });
+app.get('/api/auth/test', (req, res) => {
+    res.json({
+        success: true,
+        message: 'Route auth accessible',
+        timestamp: new Date().toISOString()
+    });
+});
+app.get('/api/routes', (req, res) => {
+    const routes = [];
+    app._router.stack.forEach((middleware) => {
+        if (middleware.route) {
+            routes.push({
+                path: middleware.route.path,
+                methods: Object.keys(middleware.route.methods)
+            });
+        }
+        else if (middleware.name === 'router') {
+            middleware.handle.stack.forEach((handler) => {
+                if (handler.route) {
+                    routes.push({
+                        path: handler.route.path,
+                        methods: Object.keys(handler.route.methods)
+                    });
+                }
+            });
+        }
+    });
+    res.json({
+        success: true,
+        message: 'Routes disponibles',
+        routes: routes,
+        timestamp: new Date().toISOString()
+    });
+});
 app.get('/api/stadiums/test', async (req, res) => {
     try {
         console.log('🔍 Test de récupération des stades...');
@@ -169,14 +205,21 @@ app.get('/api/stadiums/test', async (req, res) => {
         });
     }
 });
-app.use('/api/auth', authRoutes);
-app.use('/api/tournaments', tournamentRoutes);
-app.use('/api/teams', teamRoutes);
-app.use('/api/players', playerRoutes);
-app.use('/api/matches', matchRoutes);
-app.use('/api/data', dataRoutes);
-app.use('/api/live-matches', liveMatchRoutes);
-app.use('/api/stadiums', stadiumRoutes);
+console.log("🔧 Enregistrement des routes...");
+app.use('/api/auth', auth_routes_1.default);
+console.log("✅ Route /api/auth enregistrée");
+app.use('/api/tournaments', tournament_routes_1.default);
+app.use('/api/teams', team_routes_1.default);
+app.use('/api/players', player_routes_1.default);
+app.use('/api/matches', match_routes_1.default);
+app.use('/api/data', data_routes_1.default);
+app.use('/api/live-matches', liveMatch_routes_1.default);
+app.use('/api/stadiums', stadium_routes_1.default);
+app.use('/api/reservations', reservation_routes_1.default);
+app.use('/api/academies', academy_routes_1.default);
+console.log("✅ Route /api/reservations enregistrée");
+console.log("✅ Route /api/academies enregistrée");
+console.log("✅ Toutes les routes enregistrées");
 app.use("*", (req, res) => {
     res.status(404).json({
         success: false,

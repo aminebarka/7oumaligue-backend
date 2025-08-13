@@ -27,7 +27,7 @@ const createStadium = async (req, res) => {
                 ownerId: req.user?.userId || 1,
             },
         });
-        return (0, apiResponse_1.created)(res, stadium, "Stade créé avec succès");
+        return (0, apiResponse_1.created)(res, "Stade créé avec succès", stadium);
     }
     catch (error) {
         console.error("Erreur création stade:", error);
@@ -42,7 +42,7 @@ const getStadiums = async (req, res) => {
                 name: 'asc'
             }
         });
-        return (0, apiResponse_1.success)(res, stadiums);
+        return (0, apiResponse_1.success)(res, "Stades récupérés avec succès", stadiums);
     }
     catch (error) {
         console.error("Erreur récupération stades:", error);
@@ -61,7 +61,7 @@ const getStadiumById = async (req, res) => {
         if (!stadium) {
             return (0, apiResponse_1.notFound)(res, "Stade non trouvé");
         }
-        return (0, apiResponse_1.success)(res, stadium);
+        return (0, apiResponse_1.success)(res, "Stade récupéré avec succès", stadium);
     }
     catch (error) {
         console.error("Erreur récupération stade:", error);
@@ -90,7 +90,7 @@ const updateStadium = async (req, res) => {
             },
             data: updateData,
         });
-        return (0, apiResponse_1.success)(res, stadium, "Stade mis à jour avec succès");
+        return (0, apiResponse_1.success)(res, "Stade mis à jour avec succès", stadium);
     }
     catch (error) {
         console.error("Erreur mise à jour stade:", error);
@@ -114,7 +114,7 @@ const deleteStadium = async (req, res) => {
                 id: parseInt(id),
             },
         });
-        return (0, apiResponse_1.success)(res, null, "Stade supprimé avec succès");
+        return (0, apiResponse_1.success)(res, "Stade supprimé avec succès", null);
     }
     catch (error) {
         console.error("Erreur suppression stade:", error);
@@ -136,7 +136,7 @@ const getStadiumsByCity = async (req, res) => {
                 name: 'asc'
             }
         });
-        return (0, apiResponse_1.success)(res, stadiums);
+        return (0, apiResponse_1.success)(res, "Stades par ville récupérés avec succès", stadiums);
     }
     catch (error) {
         console.error("Erreur récupération stades par ville:", error);
@@ -154,7 +154,7 @@ const getFavoriteStadiums = async (req, res) => {
                 name: 'asc'
             }
         });
-        return (0, apiResponse_1.success)(res, stadiums);
+        return (0, apiResponse_1.success)(res, "Stades favoris récupérés avec succès", stadiums);
     }
     catch (error) {
         console.error("Erreur récupération stades favoris:", error);

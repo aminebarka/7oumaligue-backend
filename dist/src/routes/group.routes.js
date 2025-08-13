@@ -72,7 +72,7 @@ router.post('/', auth_middleware_1.authenticateToken, async (req, res) => {
                 }
             }
         });
-        return (0, apiResponse_1.created)(res, group, 'Groupe créé avec succès');
+        return (0, apiResponse_1.created)(res, 'Groupe créé avec succès', group);
     }
     catch (error) {
         console.error('Erreur lors de la création du groupe:', error);
@@ -97,7 +97,7 @@ router.patch('/:id', auth_middleware_1.authenticateToken, async (req, res) => {
                 }
             }
         });
-        return (0, apiResponse_1.success)(res, group, 'Groupe modifié avec succès');
+        return (0, apiResponse_1.success)(res, 'Groupe modifié avec succès', group);
     }
     catch (error) {
         console.error('Erreur lors de la modification du groupe:', error);
@@ -178,7 +178,7 @@ router.post('/:id/teams', auth_middleware_1.authenticateToken, async (req, res) 
             }
         });
         console.log('✅ GroupTeam créé avec succès:', groupTeam.id);
-        return (0, apiResponse_1.created)(res, groupTeam, 'Équipe ajoutée au groupe avec succès');
+        return (0, apiResponse_1.created)(res, 'Équipe ajoutée au groupe avec succès', groupTeam);
     }
     catch (error) {
         console.error('❌ Erreur lors de l\'ajout de l\'équipe au groupe:', error);
@@ -224,7 +224,7 @@ router.delete('/:id/teams/:teamId', auth_middleware_1.authenticateToken, async (
             }
         });
         console.log('✅ Équipe retirée avec succès');
-        return (0, apiResponse_1.success)(res, { message: 'Équipe retirée du groupe avec succès' });
+        return (0, apiResponse_1.success)(res, 'Équipe retirée du groupe avec succès', { message: 'Équipe retirée du groupe avec succès' });
     }
     catch (error) {
         console.error('❌ Erreur lors du retrait de l\'équipe du groupe:', error);

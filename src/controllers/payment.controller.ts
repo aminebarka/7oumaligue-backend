@@ -88,13 +88,13 @@ export class PaymentController {
           break
       }
 
-      return success(res, {
+      return success(res, 'Demande de paiement créée avec succès', {
         transactionId: transaction.transactionId,
         paymentUrl,
         amount,
         commission,
         netAmount
-      }, 'Demande de paiement créée avec succès')
+      })
 
     } catch (error: any) {
       console.error('Erreur lors de la création du paiement:', error)
@@ -119,7 +119,7 @@ export class PaymentController {
         return notFound(res, 'Transaction non trouvée')
       }
 
-      return success(res, {
+      return success(res, 'Statut du paiement récupéré avec succès', {
         transactionId: transaction.transactionId,
         status: transaction.status,
         amount: transaction.amount,
@@ -212,7 +212,7 @@ export class PaymentController {
         monthlyStats: this.getMonthlyStats(transactions)
       }
 
-      return success(res, stats)
+      return success(res, 'Statistiques récupérées avec succès', stats)
 
     } catch (error: any) {
       console.error('Erreur lors de la récupération des statistiques:', error)

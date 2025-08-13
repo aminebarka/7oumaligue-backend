@@ -74,7 +74,7 @@ router.post('/tournaments/:id/draw', auth_middleware_1.authenticateToken, async 
             }
         }
         emitDrawEvent(parseInt(tournament.id), groups);
-        return (0, apiResponse_1.success)(res, {
+        return (0, apiResponse_1.success)(res, 'Tirage effectué avec succès', {
             message: 'Tirage effectué avec succès',
             groups: groups.map(group => ({
                 name: group.name,
@@ -135,7 +135,7 @@ router.get('/tournaments/:id/draw-animation', authMiddleware, async (req, res) =
             })),
             remainingTeams: tournament.tournamentTeams.map((tt) => tt.team).filter((team) => !tournament.groups.some((group) => group.groupTeams.some((gt) => gt.teamId === team.id)))
         };
-        return (0, apiResponse_1.success)(res, drawData);
+        return (0, apiResponse_1.success)(res, "Animation de tirage récupérée avec succès", drawData);
     }
     catch (error) {
         console.error('Erreur lors de la récupération de l\'animation:', error);
@@ -174,7 +174,7 @@ router.delete('/tournaments/:id/draw', auth_middleware_1.authenticateToken, asyn
                 teamsPerGroup: 0
             }
         });
-        return (0, apiResponse_1.success)(res, { message: 'Tirage annulé avec succès' });
+        return (0, apiResponse_1.success)(res, 'Tirage annulé avec succès', { message: 'Tirage annulé avec succès' });
     }
     catch (error) {
         console.error('Erreur lors de l\'annulation du tirage:', error);

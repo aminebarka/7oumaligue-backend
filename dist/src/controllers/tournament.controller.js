@@ -66,7 +66,7 @@ const createTournament = async (req, res) => {
             },
         });
         console.log("✅ Tournoi créé avec succès:", tournament);
-        return (0, apiResponse_1.created)(res, tournament, "Tournoi créé avec succès");
+        return (0, apiResponse_1.created)(res, "Tournoi créé avec succès", tournament);
     }
     catch (error) {
         console.error("❌ Erreur création tournoi:", {
@@ -101,7 +101,7 @@ const getTournaments = async (req, res) => {
                 createdAt: "desc",
             },
         });
-        return (0, apiResponse_1.success)(res, tournaments);
+        return (0, apiResponse_1.success)(res, "Tournois récupérés avec succès", tournaments);
     }
     catch (error) {
         console.error("Erreur récupération tournois:", error);
@@ -137,7 +137,7 @@ const getTournamentById = async (req, res) => {
         if (!tournament) {
             return (0, apiResponse_1.notFound)(res, "Tournoi non trouvé");
         }
-        return (0, apiResponse_1.success)(res, tournament);
+        return (0, apiResponse_1.success)(res, "Tournoi récupéré avec succès", tournament);
     }
     catch (error) {
         console.error("Erreur récupération tournoi:", error);
@@ -162,7 +162,7 @@ const updateTournament = async (req, res) => {
             },
             data: updateData,
         });
-        return (0, apiResponse_1.success)(res, tournament, "Tournoi mis à jour avec succès");
+        return (0, apiResponse_1.success)(res, "Tournoi mis à jour avec succès", tournament);
     }
     catch (error) {
         console.error("Erreur mise à jour tournoi:", error);
@@ -179,7 +179,7 @@ const deleteTournament = async (req, res) => {
                 tenantId: req.user?.tenantId,
             },
         });
-        return (0, apiResponse_1.success)(res, null, "Tournoi supprimé avec succès");
+        return (0, apiResponse_1.success)(res, "Tournoi supprimé avec succès", null);
     }
     catch (error) {
         console.error("Erreur suppression tournoi:", error);
@@ -240,7 +240,7 @@ const addTeamToTournament = async (req, res) => {
             },
         });
         console.log("Équipe ajoutée avec succès:", { tournamentTeamId: tournamentTeam.id, teamId: tournamentTeam.teamId });
-        return (0, apiResponse_1.created)(res, tournamentTeam, "Équipe ajoutée au tournoi");
+        return (0, apiResponse_1.created)(res, "Équipe ajoutée au tournoi", tournamentTeam);
     }
     catch (error) {
         console.error("Erreur ajout équipe:", error);
@@ -265,7 +265,7 @@ const removeTeamFromTournament = async (req, res) => {
                 id: tournamentTeam.id,
             },
         });
-        return (0, apiResponse_1.success)(res, null, "Équipe retirée du tournoi");
+        return (0, apiResponse_1.success)(res, "Équipe retirée du tournoi", null);
     }
     catch (error) {
         console.error("Erreur retrait équipe:", error);
@@ -294,7 +294,7 @@ const performDraw = async (req, res) => {
             return (0, apiResponse_1.badRequest)(res, "Le tirage au sort a déjà été effectué");
         }
         console.log("🎲 Tirage au sort temporairement désactivé");
-        return (0, apiResponse_1.success)(res, { message: "Tirage au sort temporairement désactivé" });
+        return (0, apiResponse_1.success)(res, "Tirage au sort temporairement désactivé", { message: "Tirage au sort temporairement désactivé" });
     }
     catch (error) {
         console.error("Erreur lors du tirage au sort:", error);
@@ -899,7 +899,7 @@ const getStadiums = async (req, res) => {
                 name: 'asc',
             },
         });
-        return (0, apiResponse_1.success)(res, stadiums);
+        return (0, apiResponse_1.success)(res, "Stades récupérés avec succès", stadiums);
     }
     catch (error) {
         console.error("Erreur récupération stades:", error);

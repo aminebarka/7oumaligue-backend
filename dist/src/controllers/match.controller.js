@@ -77,7 +77,7 @@ const createMatch = async (req, res) => {
                 },
             },
         });
-        return (0, apiResponse_1.created)(res, match, "Match créé avec succès");
+        return (0, apiResponse_1.created)(res, "Match créé avec succès", match);
     }
     catch (error) {
         console.error("Erreur création match:", error);
@@ -126,7 +126,7 @@ const getMatches = async (req, res) => {
             },
             orderBy: [{ date: "asc" }, { time: "asc" }],
         });
-        return (0, apiResponse_1.success)(res, matches);
+        return (0, apiResponse_1.success)(res, "Matches récupérés avec succès", matches);
     }
     catch (error) {
         console.error("Erreur récupération matchs:", error);
@@ -165,7 +165,7 @@ const getMatchById = async (req, res) => {
         if (!match) {
             return (0, apiResponse_1.notFound)(res, "Match non trouvé");
         }
-        return (0, apiResponse_1.success)(res, match);
+        return (0, apiResponse_1.success)(res, "Match récupéré avec succès", match);
     }
     catch (error) {
         console.error("Erreur récupération match:", error);
@@ -202,7 +202,7 @@ const updateMatch = async (req, res) => {
                 },
             },
         });
-        return (0, apiResponse_1.success)(res, match, "Match mis à jour avec succès");
+        return (0, apiResponse_1.success)(res, "Match mis à jour avec succès", match);
     }
     catch (error) {
         console.error("Erreur mise à jour match:", error);
@@ -293,7 +293,7 @@ const updateMatchScore = async (req, res) => {
                 ]);
             }
         }
-        return (0, apiResponse_1.success)(res, updatedMatch, "Score du match mis à jour avec succès");
+        return (0, apiResponse_1.success)(res, "Score du match mis à jour avec succès", updatedMatch);
     }
     catch (error) {
         console.error("Erreur mise à jour score:", error);
@@ -319,7 +319,7 @@ const deleteMatch = async (req, res) => {
         await database_1.prisma.match.delete({
             where: { id: id },
         });
-        return (0, apiResponse_1.success)(res, null, "Match supprimé avec succès");
+        return (0, apiResponse_1.success)(res, "Match supprimé avec succès", null);
     }
     catch (error) {
         console.error("Erreur suppression match:", error);

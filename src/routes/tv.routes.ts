@@ -119,7 +119,7 @@ router.get('/tournaments/:id/tv-data', async (req, res) => {
       take: 5
     })
 
-    return success(res, {
+    return success(res, "Données TV récupérées avec succès", {
       tournament,
       currentMatch,
       upcomingMatches,

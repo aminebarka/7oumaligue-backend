@@ -99,7 +99,7 @@ export const register = async (req: Request, res: Response) => {
     };
 
     console.log("✅ Inscription réussie pour:", email, "avec le rôle:", user.role);
-    return created(res, { user: userData, token }, "Compte créé avec succès");
+    return created(res, "Compte créé avec succès", { user: userData, token });
   } catch (error: any) {
     console.error("❌ Erreur lors de l'inscription:", error);
     console.error("❌ Détails de l'erreur:", {
@@ -158,7 +158,7 @@ export const login = async (req: Request, res: Response) => {
       tenantId: user.tenantId,
     };
 
-    return success(res, { user: userData, token }, "Connexion réussie");
+    return success(res, "Connexion réussie", { user: userData, token });
   } catch (error) {
     console.error("Erreur lors de la connexion:", error);
     return badRequest(res, "Erreur lors de la connexion");
@@ -190,7 +190,7 @@ export const getProfile = async (req: Request, res: Response) => {
       return unauthorized(res, "Utilisateur non trouvé");
     }
 
-    return success(res, user);
+    return success(res, "Profil récupéré avec succès", user);
   } catch (error) {
     console.error("Erreur lors de la récupération du profil:", error);
     return badRequest(res, "Erreur lors de la récupération du profil");
@@ -237,7 +237,7 @@ export const updateProfile = async (req: Request, res: Response) => {
       },
     });
 
-    return success(res, updatedUser, "Profil mis à jour avec succès");
+    return success(res, "Profil mis à jour avec succès", updatedUser);
   } catch (error) {
     console.error("Erreur lors de la mise à jour du profil:", error);
     return badRequest(res, "Erreur lors de la mise à jour du profil");
@@ -278,7 +278,7 @@ export const changePassword = async (req: Request, res: Response) => {
       data: { password: hashedNewPassword },
     });
 
-    return success(res, null, "Mot de passe modifié avec succès");
+    return success(res, "Mot de passe modifié avec succès", null);
   } catch (error) {
     console.error("Erreur lors du changement de mot de passe:", error);
     return badRequest(res, "Erreur lors du changement de mot de passe");
@@ -314,7 +314,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
       orderBy: { createdAt: 'desc' }
     });
 
-    return success(res, users, "Utilisateurs récupérés avec succès");
+    return success(res, "Utilisateurs récupérés avec succès", users);
   } catch (error) {
     console.error("Erreur lors de la récupération des utilisateurs:", error);
     return badRequest(res, "Erreur lors de la récupération des utilisateurs");
@@ -356,7 +356,7 @@ export const updateUserRole = async (req: Request, res: Response) => {
       }
     });
 
-    return success(res, updatedUser, "Rôle utilisateur mis à jour avec succès");
+    return success(res, "Rôle utilisateur mis à jour avec succès", updatedUser);
   } catch (error) {
     console.error("Erreur lors de la mise à jour du rôle:", error);
     return badRequest(res, "Erreur lors de la mise à jour du rôle");
@@ -382,7 +382,7 @@ export const deleteUser = async (req: Request, res: Response) => {
       where: { id: parseInt(userId) }
     });
 
-    return success(res, null, "Utilisateur supprimé avec succès");
+    return success(res, "Utilisateur supprimé avec succès", null);
   } catch (error) {
     console.error("Erreur lors de la suppression de l'utilisateur:", error);
     return badRequest(res, "Erreur lors de la suppression de l'utilisateur");
@@ -429,7 +429,7 @@ export const getUserStats = async (req: Request, res: Response) => {
       recentUsers
     };
 
-    return success(res, stats, "Statistiques utilisateurs récupérées avec succès");
+    return success(res, "Statistiques utilisateurs récupérées avec succès", stats);
   } catch (error) {
     console.error("Erreur lors de la récupération des statistiques:", error);
     return badRequest(res, "Erreur lors de la récupération des statistiques");

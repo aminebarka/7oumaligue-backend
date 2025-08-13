@@ -42,7 +42,7 @@ router.get('/community/leagues', async (req, res) => {
       }
     })
 
-    return success(res, leagues)
+    return success(res, "Ligues récupérées avec succès", leagues)
   } catch (error) {
     console.error('Erreur lors de la récupération des ligues:', error)
     return badRequest(res, 'Erreur lors de la récupération des ligues')
@@ -77,7 +77,7 @@ router.get('/community/standings', async (req, res) => {
       ]
     })
 
-    return success(res, standings)
+    return success(res, "Classements récupérés avec succès", standings)
   } catch (error) {
     console.error('Erreur lors de la récupération du classement:', error)
     return badRequest(res, 'Erreur lors de la récupération du classement')
@@ -109,7 +109,7 @@ router.post('/feed', authenticateToken, async (req, res) => {
       }
     })
 
-    return success(res, post, 'Post créé avec succès')
+    return success(res, 'Post créé avec succès', post)
   } catch (error) {
     console.error('Erreur lors de la création du post:', error)
     return badRequest(res, 'Erreur lors de la création du post')
@@ -155,7 +155,7 @@ router.get('/feed', async (req, res) => {
 
     const total = await prisma.socialPost.count({ where: whereClause })
 
-    return success(res, {
+    return success(res, "Posts récupérés avec succès", {
       posts,
       pagination: {
         page: parseInt(page as string),
@@ -206,7 +206,7 @@ router.post('/votes', authenticateToken, async (req, res) => {
       }
     })
 
-    return success(res, vote, 'Vote enregistré avec succès')
+    return success(res, 'Vote enregistré avec succès', vote)
   } catch (error) {
     console.error('Erreur lors de l\'enregistrement du vote:', error)
     return badRequest(res, 'Erreur lors de l\'enregistrement du vote')
@@ -271,7 +271,7 @@ router.get('/votes', async (req, res) => {
       })
     )
 
-    return success(res, enrichedVotes)
+    return success(res, "Votes récupérés avec succès", enrichedVotes)
   } catch (error) {
     console.error('Erreur lors de la récupération des votes:', error)
     return badRequest(res, 'Erreur lors de la récupération des votes')
@@ -309,7 +309,7 @@ router.post('/teams/:id/fans', authenticateToken, async (req, res) => {
       }
     })
 
-    return success(res, fan, 'Vous êtes maintenant fan de cette équipe')
+    return success(res, 'Vous êtes maintenant fan de cette équipe', fan)
   } catch (error) {
     console.error('Erreur lors de l\'ajout du fan:', error)
     return badRequest(res, 'Erreur lors de l\'ajout du fan')
@@ -345,7 +345,7 @@ router.get('/teams/:id/fans', async (req, res) => {
 
     const total = await prisma.teamFan.count({ where: whereClause })
 
-    return success(res, {
+    return success(res, "Fans récupérés avec succès", {
       fans,
       pagination: {
         page: parseInt(page as string),
@@ -390,7 +390,7 @@ router.post('/community/leagues', authenticateToken, async (req, res) => {
       }
     })
 
-    return success(res, league, 'Ligue communautaire créée avec succès')
+    return success(res, 'Ligue communautaire créée avec succès', league)
   } catch (error) {
     console.error('Erreur lors de la création de la ligue:', error)
     return badRequest(res, 'Erreur lors de la création de la ligue')
@@ -426,7 +426,7 @@ router.post('/community/leagues/:id/join', authenticateToken, async (req, res) =
       }
     })
 
-    return success(res, participant, 'Équipe ajoutée à la ligue')
+    return success(res, 'Équipe ajoutée à la ligue', participant)
   } catch (error) {
     console.error('Erreur lors de l\'ajout à la ligue:', error)
     return badRequest(res, 'Erreur lors de l\'ajout à la ligue')

@@ -28,10 +28,10 @@ const getLiveMatchState = async (req, res) => {
             createdAt: new Date(),
             updatedAt: new Date(),
         };
-        return (0, apiResponse_1.success)(res, {
+        return (0, apiResponse_1.success)(res, "État en direct récupéré", {
             liveState: defaultState,
             events: [],
-        }, "État en direct récupéré");
+        });
     }
     catch (error) {
         console.error("Erreur lors de la récupération de l'état en direct:", error);
@@ -59,7 +59,7 @@ const startLiveMatch = async (req, res) => {
             createdAt: new Date(),
             updatedAt: new Date(),
         };
-        return (0, apiResponse_1.success)(res, liveState, "Match démarré en direct");
+        return (0, apiResponse_1.success)(res, "Match démarré en direct", liveState);
     }
     catch (error) {
         console.error("Erreur lors du démarrage du match:", error);
@@ -92,7 +92,7 @@ const togglePauseMatch = async (req, res) => {
             createdAt: new Date(),
             updatedAt: new Date(),
         };
-        return (0, apiResponse_1.success)(res, updatedState, "État de pause mis à jour");
+        return (0, apiResponse_1.success)(res, "État de pause mis à jour", updatedState);
     }
     catch (error) {
         console.error("Erreur lors de la mise à jour de la pause:", error);
@@ -125,7 +125,7 @@ const endLiveMatch = async (req, res) => {
             createdAt: new Date(),
             updatedAt: new Date(),
         };
-        return (0, apiResponse_1.success)(res, updatedState, "Match terminé");
+        return (0, apiResponse_1.success)(res, "Match terminé", updatedState);
     }
     catch (error) {
         console.error("Erreur lors de la fin du match:", error);
@@ -159,7 +159,7 @@ const updateMatchTime = async (req, res) => {
             createdAt: new Date(),
             updatedAt: new Date(),
         };
-        return (0, apiResponse_1.success)(res, updatedState, "Temps du match mis à jour");
+        return (0, apiResponse_1.success)(res, "Temps du match mis à jour", updatedState);
     }
     catch (error) {
         console.error("Erreur lors de la mise à jour du temps:", error);
@@ -206,7 +206,7 @@ const updateLiveMatchScore = async (req, res) => {
                 updatedAt: new Date(),
             },
         });
-        return (0, apiResponse_1.success)(res, updatedMatch, "Score mis à jour avec succès");
+        return (0, apiResponse_1.success)(res, "Score mis à jour avec succès", updatedMatch);
     }
     catch (error) {
         console.error("Erreur mise à jour score live:", error);
@@ -237,7 +237,7 @@ const addMatchEvent = async (req, res) => {
             createdAt: new Date(),
             updatedAt: new Date(),
         };
-        return (0, apiResponse_1.success)(res, event, "Événement ajouté");
+        return (0, apiResponse_1.success)(res, "Événement ajouté", event);
     }
     catch (error) {
         console.error("Erreur lors de l'ajout de l'événement:", error);
@@ -248,7 +248,7 @@ exports.addMatchEvent = addMatchEvent;
 const deleteMatchEvent = async (req, res) => {
     const { eventId } = req.params;
     try {
-        return (0, apiResponse_1.success)(res, null, "Événement supprimé");
+        return (0, apiResponse_1.success)(res, "Événement supprimé", null);
     }
     catch (error) {
         console.error("Erreur lors de la suppression de l'événement:", error);
@@ -260,7 +260,7 @@ const getMatchEvents = async (req, res) => {
     const { matchId } = req.params;
     try {
         const events = [];
-        return (0, apiResponse_1.success)(res, events, "Événements récupérés");
+        return (0, apiResponse_1.success)(res, "Événements récupérés", events);
     }
     catch (error) {
         console.error("Erreur lors de la récupération des événements:", error);

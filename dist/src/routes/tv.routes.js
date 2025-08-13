@@ -104,7 +104,7 @@ router.get('/tournaments/:id/tv-data', async (req, res) => {
             },
             take: 5
         });
-        return (0, apiResponse_1.success)(res, {
+        return (0, apiResponse_1.success)(res, "Données TV récupérées avec succès", {
             tournament,
             currentMatch,
             upcomingMatches,
@@ -386,7 +386,7 @@ function generateTVHTML(tournament, currentMatch, upcomingMatches) {
         updateClock();
 
         // WebSocket pour les mises à jour en temps réel
-        const ws = new WebSocket('ws://localhost:5000/ws');
+        const ws = new WebSocket('ws://backend-7oumaligue-hrd4bqesgcefg5h4.francecentral-01.azurewebsites.net/ws');
         
         ws.onopen = function() {
             console.log('WebSocket connecté');

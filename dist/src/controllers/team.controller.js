@@ -43,7 +43,7 @@ const createTeam = async (req, res) => {
             name: team.name,
             tenantId: team.tenantId
         });
-        return (0, apiResponse_1.created)(res, team, "Équipe créée avec succès");
+        return (0, apiResponse_1.created)(res, "Équipe créée avec succès", team);
     }
     catch (error) {
         console.error("❌ ERREUR CRITIQUE lors de la création de l'équipe:", {
@@ -116,7 +116,7 @@ const getTeams = async (req, res) => {
                 createdAt: "desc",
             },
         });
-        return (0, apiResponse_1.success)(res, teams);
+        return (0, apiResponse_1.success)(res, "Équipes récupérées avec succès", teams);
     }
     catch (error) {
         console.error("Erreur récupération équipes:", error?.message || error);
@@ -175,7 +175,7 @@ const getTeamById = async (req, res) => {
         if (!team) {
             return (0, apiResponse_1.notFound)(res, "Équipe non trouvée");
         }
-        return (0, apiResponse_1.success)(res, team);
+        return (0, apiResponse_1.success)(res, "Équipe récupérée avec succès", team);
     }
     catch (error) {
         console.error("Erreur récupération équipe:", error?.message || error);
@@ -213,7 +213,7 @@ const updateTeam = async (req, res) => {
                 playerRecords: true,
             },
         });
-        return (0, apiResponse_1.success)(res, team, "Équipe mise à jour avec succès");
+        return (0, apiResponse_1.success)(res, "Équipe mise à jour avec succès", team);
     }
     catch (error) {
         console.error("Erreur mise à jour équipe:", error?.message || error);
@@ -283,7 +283,7 @@ const deleteTeam = async (req, res) => {
         const message = force
             ? "Équipe supprimée avec succès (suppression forcée)"
             : "Équipe supprimée avec succès";
-        return (0, apiResponse_1.success)(res, null, message);
+        return (0, apiResponse_1.success)(res, message, null);
     }
     catch (error) {
         console.error("❌ Erreur suppression équipe:", {
@@ -323,7 +323,7 @@ const addPlayerToTeam = async (req, res) => {
             where: { id: playerId },
             data: { teamId: id },
         });
-        return (0, apiResponse_1.success)(res, null, "Joueur ajouté à l'équipe avec succès");
+        return (0, apiResponse_1.success)(res, "Joueur ajouté à l'équipe avec succès", null);
     }
     catch (error) {
         console.error("Erreur ajout joueur à équipe:", error?.message || error);
@@ -356,7 +356,7 @@ const removePlayerFromTeam = async (req, res) => {
             where: { id: playerId },
             data: { teamId: null },
         });
-        return (0, apiResponse_1.success)(res, null, "Joueur retiré de l'équipe avec succès");
+        return (0, apiResponse_1.success)(res, "Joueur retiré de l'équipe avec succès", null);
     }
     catch (error) {
         console.error("Erreur retrait joueur de équipe:", error?.message || error);

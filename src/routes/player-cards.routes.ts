@@ -69,7 +69,7 @@ router.get('/players/:id/card', async (req, res) => {
     }
 
     // Retourner les données JSON pour l'affichage HTML
-    return success(res, {
+    return success(res, "Carte du joueur récupérée avec succès", {
       player: {
         id: player.id,
         name: player.name,
@@ -158,7 +158,7 @@ router.get('/players/:id/achievements', async (req, res) => {
 
     const achievements = await getPlayerAchievements(parseInt(id))
 
-    return success(res, achievements)
+    return success(res, "Réalisations du joueur récupérées avec succès", achievements)
   } catch (error) {
     console.error('Erreur lors de la récupération des réalisations:', error)
     return badRequest(res, 'Erreur lors de la récupération des réalisations')
@@ -192,7 +192,7 @@ router.get('/players/:id/reputation', async (req, res) => {
     const reputationLevel = calculateReputationLevel(totalStats, player.playerBadges.length)
     const reputationPoints = calculateReputationPoints(totalStats, player.playerBadges)
 
-    return success(res, {
+    return success(res, "Réputation du joueur récupérée avec succès", {
       level: reputationLevel,
       points: reputationPoints,
       stats: totalStats,
@@ -230,7 +230,7 @@ router.patch('/players/:id/reputation', authenticateToken, async (req, res) => {
       }
     })
 
-    return success(res, { message: 'Réputation mise à jour' })
+    return success(res, 'Réputation mise à jour', { message: 'Réputation mise à jour' })
   } catch (error) {
     console.error('Erreur lors de la mise à jour de la réputation:', error)
     return badRequest(res, 'Erreur lors de la mise à jour de la réputation')

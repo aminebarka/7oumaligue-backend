@@ -48,8 +48,7 @@ export const getStadiums = async (req: Request, res: Response) => {
         },
         _count: {
           select: {
-            fields: true,
-            reservations: true
+            fields: true
           }
         }
       },
@@ -58,7 +57,7 @@ export const getStadiums = async (req: Request, res: Response) => {
       }
     });
 
-    return success(res, stadiums, "Stades récupérés avec succès");
+    return success(res, "Stades récupérés avec succès", stadiums);
   } catch (error) {
     console.error("Erreur lors de la récupération des stades:", error);
     return badRequest(res, "Erreur lors de la récupération des stades");
@@ -90,8 +89,7 @@ export const getStadium = async (req: Request, res: Response) => {
         },
         _count: {
           select: {
-            fields: true,
-            reservations: true
+            fields: true
           }
         }
       }
@@ -101,7 +99,7 @@ export const getStadium = async (req: Request, res: Response) => {
       return notFound(res, "Stade non trouvé");
     }
 
-    return success(res, stadium, "Stade récupéré avec succès");
+    return success(res, "Stade récupéré avec succès", stadium);
   } catch (error) {
     console.error("Erreur lors de la récupération du stade:", error);
     return badRequest(res, "Erreur lors de la récupération du stade");
@@ -175,7 +173,19 @@ export const getStadiumAvailability = async (req: Request, res: Response) => {
       const fieldReservations = reservations.filter(r => r.fieldId === field.id);
       
       // Créer des créneaux horaires (par exemple, de 8h à 22h)
-      const timeSlots = [];
+      const timeSlots: Array<{
+        hour: number;
+        startTime: string;
+        endTime: string;
+        isAvailable: boolean;
+        reservation: {
+          id: number;
+          title: string;
+          user: { id: number; name: string };
+          team: any;
+          status: string;
+        } | null;
+      }> = [];
       for (let hour = 8; hour < 22; hour++) {
         const slotStart = new Date(targetDate);
         slotStart.setHours(hour, 0, 0, 0);
@@ -195,7 +205,7 @@ export const getStadiumAvailability = async (req: Request, res: Response) => {
             id: conflictingReservation.id,
             title: conflictingReservation.title,
             user: conflictingReservation.user,
-            team: conflictingReservation.team,
+            team: conflictingReservation.team as any,
             status: conflictingReservation.status
           } : null
         });
@@ -208,10 +218,10 @@ export const getStadiumAvailability = async (req: Request, res: Response) => {
       };
     });
 
-    return success(res, {
+    return success(res, "Disponibilité récupérée avec succès", {
       date: targetDate.toISOString(),
       availability
-    }, "Disponibilité récupérée avec succès");
+    });
   } catch (error) {
     console.error("Erreur lors de la récupération de la disponibilité:", error);
     return badRequest(res, "Erreur lors de la récupération de la disponibilité");
@@ -258,7 +268,7 @@ export const getFields = async (req: Request, res: Response) => {
       ]
     });
 
-    return success(res, fields, "Terrains récupérés avec succès");
+    return success(res, "Terrains récupérés avec succès", fields);
   } catch (error) {
     console.error("Erreur lors de la récupération des terrains:", error);
     return badRequest(res, "Erreur lors de la récupération des terrains");
@@ -305,7 +315,7 @@ export const getField = async (req: Request, res: Response) => {
       return notFound(res, "Terrain non trouvé");
     }
 
-    return success(res, field, "Terrain récupéré avec succès");
+    return success(res, "Terrain récupéré avec succès", field);
   } catch (error) {
     console.error("Erreur lors de la récupération du terrain:", error);
     return badRequest(res, "Erreur lors de la récupération du terrain");
@@ -362,7 +372,7 @@ export const createStadium = async (req: Request, res: Response) => {
       }
     });
 
-    return created(res, stadium, "Stade créé avec succès");
+    return created(res, "Stade créé avec succès", stadium);
   } catch (error) {
     console.error("Erreur lors de la création du stade:", error);
     return badRequest(res, "Erreur lors de la création du stade");
@@ -413,7 +423,7 @@ export const createField = async (req: Request, res: Response) => {
       }
     });
 
-    return created(res, field, "Terrain créé avec succès");
+    return created(res, "Terrain créé avec succès", field);
   } catch (error) {
     console.error("Erreur lors de la création du terrain:", error);
     return badRequest(res, "Erreur lors de la création du terrain");

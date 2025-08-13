@@ -93,7 +93,7 @@ export const createMatch = async (req: Request, res: Response) => {
       },
     })
 
-    return created(res, match, "Match créé avec succès")
+    return created(res, "Match créé avec succès", match)
   } catch (error) {
     console.error("Erreur création match:", error)
     return badRequest(res, "Erreur lors de la création du match")
@@ -148,7 +148,7 @@ export const getMatches = async (req: Request, res: Response) => {
       orderBy: [{ date: "asc" }, { time: "asc" }],
     })
 
-    return success(res, matches)
+    return success(res, "Matches récupérés avec succès", matches)
   } catch (error) {
     console.error("Erreur récupération matchs:", error)
     return badRequest(res, "Erreur lors de la récupération des matchs")
@@ -189,7 +189,7 @@ export const getMatchById = async (req: Request, res: Response) => {
       return notFound(res, "Match non trouvé")
     }
 
-    return success(res, match)
+    return success(res, "Match récupéré avec succès", match)
   } catch (error) {
     console.error("Erreur récupération match:", error)
     return badRequest(res, "Erreur lors de la récupération du match")
@@ -226,7 +226,7 @@ export const updateMatch = async (req: Request, res: Response) => {
       },
     })
 
-    return success(res, match, "Match mis à jour avec succès")
+    return success(res, "Match mis à jour avec succès", match)
   } catch (error) {
     console.error("Erreur mise à jour match:", error)
     return badRequest(res, "Erreur lors de la mise à jour du match")
@@ -332,7 +332,7 @@ export const updateMatchScore = async (req: Request, res: Response) => {
       }
     }
 
-    return success(res, updatedMatch, "Score du match mis à jour avec succès")
+    return success(res, "Score du match mis à jour avec succès", updatedMatch)
   } catch (error) {
     console.error("Erreur mise à jour score:", error)
     return badRequest(res, "Erreur lors de la mise à jour du score")
@@ -362,7 +362,7 @@ export const deleteMatch = async (req: Request, res: Response) => {
       where: { id: id },
     })
 
-    return success(res, null, "Match supprimé avec succès")
+    return success(res, "Match supprimé avec succès", null)
   } catch (error) {
     console.error("Erreur suppression match:", error)
     return badRequest(res, "Erreur lors de la suppression du match")

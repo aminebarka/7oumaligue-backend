@@ -1,6 +1,6 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken } from '../middleware/auth.middleware';
 import { success, created, badRequest, unauthorized, notFound } from '../utils/apiResponse';
 
 const router = express.Router();
@@ -85,7 +85,7 @@ router.get('/:id', async (req, res) => {
 // POST /api/academies - Créer une nouvelle académie
 router.post('/', authenticateToken, async (req, res) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = req.user?.userId;
     const {
       name,
       description,
@@ -117,7 +117,7 @@ router.post('/', authenticateToken, async (req, res) => {
         socialMedia,
         history,
         values,
-        ownerId: userId
+        ownerId: userId!
       },
       include: {
         owner: {
@@ -137,7 +137,7 @@ router.post('/', authenticateToken, async (req, res) => {
 router.put('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = (req as any).user.id;
+    const userId = req.user?.userId;
     const updateData = req.body;
 
     // Vérifier que l'utilisateur est propriétaire de l'académie
@@ -174,7 +174,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = (req as any).user.id;
+    const userId = req.user?.userId;
 
     const academy = await prisma.academy.findUnique({
       where: { id: parseInt(id) }
@@ -227,7 +227,7 @@ router.get('/:academyId/teams', async (req, res) => {
 router.post('/:academyId/teams', authenticateToken, async (req, res) => {
   try {
     const { academyId } = req.params;
-    const userId = (req as any).user.id;
+    const userId = req.user?.userId;
     const { name, category, color, coachId } = req.body;
 
     if (!name || !category) {
@@ -290,7 +290,7 @@ router.get('/:academyId/players', async (req, res) => {
 router.post('/:academyId/players', authenticateToken, async (req, res) => {
   try {
     const { academyId } = req.params;
-    const userId = (req as any).user.id;
+    const userId = req.user?.userId;
     const {
       firstName,
       lastName,
@@ -371,7 +371,7 @@ router.get('/:academyId/events', async (req, res) => {
 router.post('/:academyId/events', authenticateToken, async (req, res) => {
   try {
     const { academyId } = req.params;
-    const userId = (req as any).user.id;
+    const userId = req.user?.userId;
     const {
       title,
       description,
@@ -441,7 +441,7 @@ router.get('/:academyId/announcements', async (req, res) => {
 router.post('/:academyId/announcements', authenticateToken, async (req, res) => {
   try {
     const { academyId } = req.params;
-    const userId = (req as any).user.id;
+    const userId = req.user?.userId;
     const { title, content, type, isPublic } = req.body;
 
     if (!title || !content || !type) {
@@ -480,7 +480,7 @@ router.post('/:academyId/announcements', authenticateToken, async (req, res) => 
 router.get('/:academyId/payments', authenticateToken, async (req, res) => {
   try {
     const { academyId } = req.params;
-    const userId = (req as any).user.id;
+    const userId = req.user?.userId;
 
     // Vérifier que l'utilisateur est propriétaire de l'académie
     const academy = await prisma.academy.findUnique({
@@ -511,7 +511,7 @@ router.get('/:academyId/payments', authenticateToken, async (req, res) => {
 router.post('/:academyId/payments', authenticateToken, async (req, res) => {
   try {
     const { academyId } = req.params;
-    const userId = (req as any).user.id;
+    const userId = req.user?.userId;
     const {
       playerId,
       teamId,

@@ -49,7 +49,7 @@ router.get("/all", auth_middleware_1.authenticateToken, async (req, res) => {
             },
         };
         console.log(`✅ Données récupérées: ${data.tournaments} tournois, ${data.teams} équipes, ${data.players} joueurs, ${data.matches} matchs`);
-        return (0, apiResponse_1.success)(res, data, "Données récupérées avec succès");
+        return (0, apiResponse_1.success)(res, "Données récupérées avec succès", data);
     }
     catch (error) {
         console.error("❌ Erreur lors de la récupération des données:", error);
