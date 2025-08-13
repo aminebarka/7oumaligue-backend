@@ -444,6 +444,8 @@ model AcademyTeam {
   players   AcademyPlayer[]
   matches   AcademyMatch[] @relation("HomeTeam")
   awayMatches AcademyMatch[] @relation("AwayTeam")
+  eventParticipants AcademyEventParticipant[]
+  payments    AcademyPayment[]
   
   @@map("academy_teams")
 }
@@ -470,6 +472,8 @@ model AcademyPlayer {
   team        AcademyTeam? @relation(fields: [teamId], references: [id])
   stats       AcademyPlayerStats[]
   documents   AcademyDocument[]
+  eventParticipants AcademyEventParticipant[]
+  payments    AcademyPayment[]
   
   @@map("academy_players")
 }
