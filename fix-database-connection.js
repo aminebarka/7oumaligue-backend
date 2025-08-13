@@ -4,7 +4,7 @@ require('dotenv').config();
 
 console.log('🔧 Fixing database connection...');
 
-// Check if .env file exists
+// Check if if .env file exists
 const envPath = path.join(__dirname, '.env');
 if (!fs.existsSync(envPath)) {
     console.log('📝 Creating .env file...');
