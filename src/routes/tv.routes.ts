@@ -402,7 +402,7 @@ function generateTVHTML(tournament: any, currentMatch: any, upcomingMatches: any
         updateClock();
 
         // WebSocket pour les mises à jour en temps réel
-        const ws = new WebSocket('ws://localhost:5000/ws');
+        const ws = new WebSocket('ws://backend-7oumaligue-hrd4bqesgcefg5h4.francecentral-01.azurewebsites.net/ws');
         
         ws.onopen = function() {
             console.log('WebSocket connecté');

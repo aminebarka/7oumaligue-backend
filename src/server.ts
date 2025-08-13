@@ -32,14 +32,16 @@ import { corsMiddleware } from "./middleware/cors.middleware"
 import { connectDatabase } from "./config/database"
 
 // Import routes
-const authRoutes = require('./routes/auth.routes').default;
-const tournamentRoutes = require('./routes/tournament.routes').default;
-const teamRoutes = require('./routes/team.routes').default;
-const playerRoutes = require('./routes/player.routes').default;
-const matchRoutes = require('./routes/match.routes').default;
-const dataRoutes = require('./routes/data.routes').default;
-const liveMatchRoutes = require('./routes/liveMatch.routes').default;
-const stadiumRoutes = require('./routes/stadium.routes').default;
+import authRoutes from './routes/auth.routes';
+import tournamentRoutes from './routes/tournament.routes';
+import teamRoutes from './routes/team.routes';
+import playerRoutes from './routes/player.routes';
+import matchRoutes from './routes/match.routes';
+import dataRoutes from './routes/data.routes';
+import liveMatchRoutes from './routes/liveMatch.routes';
+import stadiumRoutes from './routes/stadium.routes';
+import reservationRoutes from './routes/reservation.routes';
+import academyRoutes from './routes/academy.routes';
 
 const app = express()
 const PORT = Number(process.env.PORT) || 8080;
@@ -159,6 +161,45 @@ app.get('/api/test', (req, res) => {
   res.json({ success: true, message: 'Serveur fonctionnel' });
 });
 
+// Route de test pour vérifier l'authentification
+app.get('/api/auth/test', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'Route auth accessible',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Route de test pour vérifier les routes disponibles
+app.get('/api/routes', (req, res) => {
+  const routes: Array<{path: string, methods: string[]}> = [];
+  
+  app._router.stack.forEach((middleware: any) => {
+    if (middleware.route) {
+      routes.push({
+        path: middleware.route.path,
+        methods: Object.keys(middleware.route.methods)
+      });
+    } else if (middleware.name === 'router') {
+      middleware.handle.stack.forEach((handler: any) => {
+        if (handler.route) {
+          routes.push({
+            path: handler.route.path,
+            methods: Object.keys(handler.route.methods)
+          });
+        }
+      });
+    }
+  });
+  
+  res.json({ 
+    success: true, 
+    message: 'Routes disponibles',
+    routes: routes,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Route de test temporaire pour les stades (sans authentification)
 app.get('/api/stadiums/test', async (req, res) => {
   try {
@@ -206,7 +247,11 @@ app.get('/api/stadiums/test', async (req, res) => {
 });
 
 // API routes
+console.log("🔧 Enregistrement des routes...");
+
 app.use('/api/auth', authRoutes);
+console.log("✅ Route /api/auth enregistrée");
+
 app.use('/api/tournaments', tournamentRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/players', playerRoutes);
@@ -214,6 +259,12 @@ app.use('/api/matches', matchRoutes);
 app.use('/api/data', dataRoutes);
 app.use('/api/live-matches', liveMatchRoutes);
 app.use('/api/stadiums', stadiumRoutes);
+app.use('/api/reservations', reservationRoutes);
+app.use('/api/academies', academyRoutes);
+console.log("✅ Route /api/reservations enregistrée");
+console.log("✅ Route /api/academies enregistrée");
+
+console.log("✅ Toutes les routes enregistrées");
 
 // 404 handler
 app.use("*", (req, res) => {

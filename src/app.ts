@@ -38,7 +38,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5174', 'http://localhost:5000', 'http://localhost:5173',"https://gray-tree-0ae561303.2.azurestaticapps.net",'https://gray-tree-0ae561303.2.azurestaticapps.net/'],
+  origin: ['http://localhost:5174', 'https://backend-7oumaligue-hrd4bqesgcefg5h4.francecentral-01.azurewebsites.net', 'http://localhost:5173',"https://gray-tree-0ae561303.2.azurestaticapps.net",'https://gray-tree-0ae561303.2.azurestaticapps.net/'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']

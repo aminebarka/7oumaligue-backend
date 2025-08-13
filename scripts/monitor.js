@@ -3,7 +3,7 @@ const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const API_URL = 'http://localhost:5000/api/health';
+const API_URL = 'https://backend-7oumaligue-hrd4bqesgcefg5h4.francecentral-01.azurewebsites.net/api/health';
 const LOG_FILE = path.join(__dirname, '../logs/monitor.log');
 const CHECK_INTERVAL = 30000; // 30 secondes
 

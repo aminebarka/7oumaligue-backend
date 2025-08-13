@@ -8,6 +8,8 @@ import { authenticateToken } from "../middleware/auth.middleware";
 
 const router = express.Router();
 
+console.log("🔧 Initialisation des routes d'authentification...");
+
 // Validation des données d'inscription
 const validateRegistrationData = (data: any) => {
   const errors: string[] = [];
@@ -251,15 +253,7 @@ export const changePassword = async (req: Request, res: Response) => {
       return unauthorized(res, "Token invalide");
     }
 
-    if (!currentPassword || !newPassword) {
-      return badRequest(res, "Ancien et nouveau mot de passe requis");
-    }
-
-    if (newPassword.length < 6) {
-      return badRequest(res, "Le nouveau mot de passe doit contenir au moins 6 caractères");
-    }
-
-    // Récupérer l'utilisateur avec son mot de passe
+    // Récupérer l'utilisateur avec son mot de passe actuel
     const user = await prisma.user.findUnique({
       where: { id: userId },
     });
@@ -269,11 +263,7 @@ export const changePassword = async (req: Request, res: Response) => {
     }
 
     // Vérifier le mot de passe actuel
-    const isCurrentPasswordValid = await bcrypt.compare(
-      currentPassword,
-      user.password
-    );
-
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
     if (!isCurrentPasswordValid) {
       return badRequest(res, "Mot de passe actuel incorrect");
     }
@@ -295,12 +285,174 @@ export const changePassword = async (req: Request, res: Response) => {
   }
 };
 
+// Routes pour la gestion des utilisateurs par les administrateurs
+export const getAllUsers = async (req: Request, res: Response) => {
+  try {
+    // Vérifier que l'utilisateur est admin
+    if (req.user?.role !== 'admin') {
+      return unauthorized(res, "Accès non autorisé");
+    }
+
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        tenantId: true,
+        createdAt: true,
+        updatedAt: true,
+        _count: {
+          select: {
+            socialPosts: true,
+            teamFans: true,
+            players: true,
+            teams: true,
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    return success(res, users, "Utilisateurs récupérés avec succès");
+  } catch (error) {
+    console.error("Erreur lors de la récupération des utilisateurs:", error);
+    return badRequest(res, "Erreur lors de la récupération des utilisateurs");
+  }
+};
+
+export const updateUserRole = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const { role } = req.body;
+
+  try {
+    // Vérifier que l'utilisateur est admin
+    if (req.user?.role !== 'admin') {
+      return unauthorized(res, "Accès non autorisé");
+    }
+
+    // Vérifier que le rôle est valide
+    const validRoles = ['player', 'coach', 'admin'];
+    if (!validRoles.includes(role)) {
+      return badRequest(res, "Rôle invalide");
+    }
+
+    // Empêcher un admin de se dégrader lui-même
+    if (parseInt(userId) === req.user?.userId && role !== 'admin') {
+      return badRequest(res, "Vous ne pouvez pas modifier votre propre rôle d'administrateur");
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: parseInt(userId) },
+      data: { role },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        tenantId: true,
+        createdAt: true,
+        updatedAt: true,
+      }
+    });
+
+    return success(res, updatedUser, "Rôle utilisateur mis à jour avec succès");
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour du rôle:", error);
+    return badRequest(res, "Erreur lors de la mise à jour du rôle");
+  }
+};
+
+export const deleteUser = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+
+  try {
+    // Vérifier que l'utilisateur est admin
+    if (req.user?.role !== 'admin') {
+      return unauthorized(res, "Accès non autorisé");
+    }
+
+    // Empêcher un admin de se supprimer lui-même
+    if (parseInt(userId) === req.user?.userId) {
+      return badRequest(res, "Vous ne pouvez pas supprimer votre propre compte");
+    }
+
+    // Supprimer l'utilisateur
+    await prisma.user.delete({
+      where: { id: parseInt(userId) }
+    });
+
+    return success(res, null, "Utilisateur supprimé avec succès");
+  } catch (error) {
+    console.error("Erreur lors de la suppression de l'utilisateur:", error);
+    return badRequest(res, "Erreur lors de la suppression de l'utilisateur");
+  }
+};
+
+export const getUserStats = async (req: Request, res: Response) => {
+  try {
+    // Vérifier que l'utilisateur est admin
+    if (req.user?.role !== 'admin') {
+      return unauthorized(res, "Accès non autorisé");
+    }
+
+    const [totalUsers, playerCount, coachCount, adminCount, recentUsers] = await Promise.all([
+      prisma.user.count(),
+      prisma.user.count({ where: { role: 'player' } }),
+      prisma.user.count({ where: { role: 'coach' } }),
+      prisma.user.count({ where: { role: 'admin' } }),
+      prisma.user.findMany({
+        where: {
+          createdAt: {
+            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // 7 derniers jours
+          }
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          createdAt: true
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 10
+      })
+    ]);
+
+    const stats = {
+      total: totalUsers,
+      byRole: {
+        players: playerCount,
+        coaches: coachCount,
+        admins: adminCount
+      },
+      recentUsers
+    };
+
+    return success(res, stats, "Statistiques utilisateurs récupérées avec succès");
+  } catch (error) {
+    console.error("Erreur lors de la récupération des statistiques:", error);
+    return badRequest(res, "Erreur lors de la récupération des statistiques");
+  }
+};
+
 // Routes
 router.post("/register", register);
 router.post("/login", login);
 router.get("/profile", getProfile);
 router.put("/profile", updateProfile);
 router.put("/change-password", changePassword);
+
+// Routes pour la gestion des utilisateurs (admin seulement)
+console.log("🔧 Enregistrement des routes de gestion des utilisateurs...");
+router.get("/users", authenticateToken, getAllUsers);
+console.log("✅ Route GET /users enregistrée");
+router.get("/users/stats", authenticateToken, getUserStats);
+console.log("✅ Route GET /users/stats enregistrée");
+router.put("/users/:userId/role", authenticateToken, updateUserRole);
+console.log("✅ Route PUT /users/:userId/role enregistrée");
+router.delete("/users/:userId", authenticateToken, deleteUser);
+console.log("✅ Route DELETE /users/:userId enregistrée");
 
 // Endpoint de debug pour vérifier l'authentification
 router.get("/debug", authenticateToken, (req: Request, res: Response) => {
@@ -331,6 +483,49 @@ router.get("/debug", authenticateToken, (req: Request, res: Response) => {
       timestamp: new Date().toISOString()
     }
   });
+});
+
+// Endpoint de test pour vérifier la base de données
+router.get("/test-db", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    console.log("🔍 Test de la base de données...");
+    
+    // Test simple de connexion
+    const userCount = await prisma.user.count();
+    console.log("✅ Nombre d'utilisateurs:", userCount);
+    
+    // Test de récupération d'un utilisateur
+    const testUser = await prisma.user.findFirst({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        tenantId: true,
+        createdAt: true,
+        updatedAt: true,
+      }
+    });
+    
+    console.log("✅ Utilisateur de test:", testUser);
+    
+    return res.json({
+      success: true,
+      message: "Test de base de données réussi",
+      data: {
+        userCount,
+        testUser,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error: any) {
+    console.error("❌ Erreur lors du test de base de données:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Erreur lors du test de base de données",
+      error: error.message
+    });
+  }
 });
 
 export default router;

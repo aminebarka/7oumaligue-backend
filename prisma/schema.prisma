@@ -28,7 +28,7 @@ model User {
   name         String
   email        String        @unique
   password     String
-  role         String        @default("user")
+  role         String        @default("player")
   tenantId     Int
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
@@ -39,6 +39,11 @@ model User {
   players      Player[]
   teams        Team[]        @relation("Coach")
   tenant       Tenant        @relation(fields: [tenantId], references: [id])
+  notifications UserNotification[]
+  // Relations avec les académies
+  ownedAcademies Academy[]   @relation("AcademyOwner")
+  staffAcademies Academy[]   @relation("AcademyStaff")
+  coachedTeams   AcademyTeam[] @relation("AcademyCoach")
 
   @@map("users")
 }
@@ -67,6 +72,7 @@ model Team {
   awayMatches                 Match[]                      @relation("AwayMatches")
   homeMatches                 Match[]                      @relation("HomeMatches")
   playerRecords               Player[]
+  reservations                Reservation[]
   coach                       User?                        @relation("Coach", fields: [coachId], references: [id])
   tenant                      Tenant?                      @relation(fields: [tenantId], references: [id])
   tournamentTeams             TournamentTeam[]
@@ -294,35 +300,330 @@ model Stadium {
   address      String
   city         String
   region       String
+  neighborhood String?              // Quartier pour les filtres
   capacity     Int
   fieldCount   Int
-  fieldTypes   String[]
-  amenities    String[]
+  fieldTypes   String[]             // ["synthétique", "gazon naturel", "couvert", "extérieur"]
+  amenities    String[]             // ["vestiaires", "parking", "éclairage", "bar"]
   images       String[]
   contactInfo  Json
-  pricing      Json
+  pricing      Json                 // { "hourly": 50, "daily": 400, "special_events": 800 }
   description  String?
   isPartner    Boolean             @default(false)
+  isActive     Boolean             @default(true)
   ownerId      Int
+  openingHours Json?               // { "monday": {"open": "08:00", "close": "22:00"}, ... }
+  specialDates Json?               // Dates de fermeture ou horaires spéciaux
   createdAt    DateTime            @default(now())
   updatedAt    DateTime            @updatedAt
-  reservations Reservation[]
   tournaments  StadiumTournament[]
+  fields       Field[]             // Nouveau modèle pour les terrains individuels
+}
+
+model Field {
+  id          Int          @id @default(autoincrement())
+  name        String       // "Terrain A", "Terrain B", etc.
+  number      Int          // Numéro du terrain
+  type        String       // "synthétique", "gazon naturel", "couvert", "extérieur"
+  size        String?      // "11v11", "7v7", "5v5"
+  isActive    Boolean      @default(true)
+  stadiumId   Int
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  stadium     Stadium      @relation(fields: [stadiumId], references: [id])
+  reservations Reservation[]
+  statistics  FieldStatistics[]
 }
 
 model Reservation {
+  id          Int          @id @default(autoincrement())
+  fieldId     Int          // Référence au terrain spécifique
+  userId      Int
+  teamId      String?      // Équipe qui réserve (optionnel)
+  title       String       // Titre de la réservation
+  description String?      // Description détaillée
+  startTime   DateTime
+  endTime     DateTime
+  purpose     String       // "match", "entraînement", "tournoi", "événement"
+  status      String       @default("pending") // "pending", "confirmed", "cancelled", "completed"
+  price       Float?       // Prix de la réservation
+  paymentStatus String     @default("pending") // "pending", "paid", "refunded"
+  paymentMethod String?    // "stripe", "paypal", "cash"
+  notes       String?      // Notes du gérant
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  field       Field        @relation(fields: [fieldId], references: [id])
+  user        User         @relation(fields: [userId], references: [id])
+  team        Team?        @relation(fields: [teamId], references: [id])
+  notifications ReservationNotification[]
+}
+
+model ReservationNotification {
+  id            Int         @id @default(autoincrement())
+  reservationId Int
+  type          String      // "confirmation", "reminder_24h", "reminder_2h", "cancellation", "change"
+  message       String
+  isRead        Boolean     @default(false)
+  sentAt        DateTime    @default(now())
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+}
+
+model FieldStatistics {
+  id          Int      @id @default(autoincrement())
+  fieldId     Int
+  date        DateTime
+  totalHours  Float    // Heures totales réservées
+  occupiedHours Float  // Heures occupées
+  revenue     Float    // Revenus générés
+  reservationsCount Int // Nombre de réservations
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  field       Field    @relation(fields: [fieldId], references: [id])
+}
+
+model UserNotification {
   id        Int      @id @default(autoincrement())
-  stadiumId Int
   userId    Int
-  fieldType String
-  startTime DateTime
-  endTime   DateTime
-  purpose   String?
-  status    String   @default("pending")
+  type      String   // "reservation", "payment", "reminder", "system"
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  data      Json?    // Données supplémentaires
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Academy {
+  id          Int      @id @default(autoincrement())
+  name        String
+  logo        String?
+  description String?
+  address     String
+  city        String
+  region      String
+  phone       String?
+  email       String?
+  website     String?
+  socialMedia Json?    // { "facebook": "...", "instagram": "...", "twitter": "..." }
+  history     String?  // Histoire et valeurs de l'académie
+  values      String?  // Valeurs de l'académie
+  isActive    Boolean  @default(true)
+  isVerified  Boolean  @default(false)
+  ownerId     Int      // Référence vers l'utilisateur propriétaire
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  owner       User     @relation("AcademyOwner", fields: [ownerId], references: [id])
+  staff       User[]   @relation("AcademyStaff")
+  teams       AcademyTeam[]
+  players     AcademyPlayer[]
+  events      AcademyEvent[]
+  announcements AcademyAnnouncement[]
+  payments    AcademyPayment[]
+  documents   AcademyDocument[]
+  sponsors    AcademySponsor[]
+  
+  @@map("academies")
+}
+
+model AcademyTeam {
+  id        Int      @id @default(autoincrement())
+  name      String   // "U8", "U10", "U12", etc.
+  category  String   // "U8", "U10", "U12", "U15", "U17", "seniors"
+  logo      String?
+  color     String?  // Couleurs de l'équipe
+  academyId Int
+  coachId   Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  stadium   Stadium  @relation(fields: [stadiumId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
+  
+  // Relations
+  academy   Academy  @relation(fields: [academyId], references: [id])
+  coach     User?    @relation("AcademyCoach", fields: [coachId], references: [id])
+  players   AcademyPlayer[]
+  matches   AcademyMatch[] @relation("HomeTeam")
+  awayMatches AcademyMatch[] @relation("AwayTeam")
+  
+  @@map("academy_teams")
+}
+
+model AcademyPlayer {
+  id          Int      @id @default(autoincrement())
+  firstName   String
+  lastName    String
+  photo       String?
+  birthDate   DateTime
+  position    String   // "Gardien", "Défenseur", "Milieu", "Attaquant"
+  jerseyNumber Int?
+  academyId   Int
+  teamId      Int?
+  parentPhone String?
+  parentEmail String?
+  medicalInfo String?  // Informations médicales importantes
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  academy     Academy  @relation(fields: [academyId], references: [id])
+  team        AcademyTeam? @relation(fields: [teamId], references: [id])
+  stats       AcademyPlayerStats[]
+  documents   AcademyDocument[]
+  
+  @@map("academy_players")
+}
+
+model AcademyPlayerStats {
+  id        Int      @id @default(autoincrement())
+  playerId  Int
+  season    String   // "2023-2024"
+  matches   Int      @default(0)
+  goals     Int      @default(0)
+  assists   Int      @default(0)
+  yellowCards Int    @default(0)
+  redCards  Int      @default(0)
+  minutesPlayed Int  @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  player    AcademyPlayer @relation(fields: [playerId], references: [id])
+  
+  @@map("academy_player_stats")
+}
+
+model AcademyEvent {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  type        String   // "tournoi", "entraînement", "match", "événement"
+  startDate   DateTime
+  endDate     DateTime
+  location    String?
+  academyId   Int
+  isPublic    Boolean  @default(false)
+  maxParticipants Int?
+  registrationDeadline DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  academy     Academy  @relation(fields: [academyId], references: [id])
+  participants AcademyEventParticipant[]
+  
+  @@map("academy_events")
+}
+
+model AcademyEventParticipant {
+  id        Int      @id @default(autoincrement())
+  eventId   Int
+  playerId  Int?
+  teamId    Int?
+  status    String   @default("registered") // "registered", "confirmed", "cancelled"
+  createdAt DateTime @default(now())
+  
+  // Relations
+  event     AcademyEvent @relation(fields: [eventId], references: [id])
+  player    AcademyPlayer? @relation(fields: [playerId], references: [id])
+  team      AcademyTeam? @relation(fields: [teamId], references: [id])
+  
+  @@map("academy_event_participants")
+}
+
+model AcademyMatch {
+  id          Int      @id @default(autoincrement())
+  homeTeamId  Int
+  awayTeamId  Int
+  homeScore   Int?
+  awayScore   Int?
+  date        DateTime
+  location    String?
+  type        String   // "amical", "compétition", "tournoi"
+  status      String   @default("scheduled") // "scheduled", "live", "completed", "cancelled"
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  homeTeam   AcademyTeam @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam   AcademyTeam @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  
+  @@map("academy_matches")
+}
+
+model AcademyAnnouncement {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  type      String   // "info", "warning", "success", "urgent"
+  academyId Int
+  isPublic  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  academy   Academy  @relation(fields: [academyId], references: [id])
+  
+  @@map("academy_announcements")
+}
+
+model AcademyPayment {
+  id        Int      @id @default(autoincrement())
+  playerId  Int?
+  teamId    Int?
+  academyId Int
+  type      String   // "cotisation", "licence", "tournoi", "autre"
+  amount    Float
+  description String?
+  dueDate   DateTime?
+  paidDate  DateTime?
+  status    String   @default("pending") // "pending", "paid", "overdue", "cancelled"
+  method    String?  // "cash", "card", "transfer"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  player    AcademyPlayer? @relation(fields: [playerId], references: [id])
+  team      AcademyTeam? @relation(fields: [teamId], references: [id])
+  academy   Academy  @relation(fields: [academyId], references: [id])
+  
+  @@map("academy_payments")
+}
+
+model AcademyDocument {
+  id        Int      @id @default(autoincrement())
+  name      String
+  type      String   // "licence", "certificat_medical", "autorisation", "autre"
+  fileUrl   String
+  playerId  Int?
+  academyId Int
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  player    AcademyPlayer? @relation(fields: [playerId], references: [id])
+  academy   Academy  @relation(fields: [academyId], references: [id])
+  
+  @@map("academy_documents")
+}
+
+model AcademySponsor {
+  id        Int      @id @default(autoincrement())
+  name      String
+  logo      String?
+  website   String?
+  description String?
+  academyId Int
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  academy   Academy  @relation(fields: [academyId], references: [id])
+  
+  @@map("academy_sponsors")
 }
 
 model Sponsor {

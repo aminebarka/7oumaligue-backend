@@ -83,9 +83,9 @@ pm2 status
 
 # Vérifier si le serveur répond
 log_info "🔍 Vérification de la santé du serveur..."
-if curl -s http://localhost:5000/health > /dev/null; then
+if curl -s https://backend-7oumaligue-hrd4bqesgcefg5h4.francecentral-01.azurewebsites.net/health > /dev/null; then
     log_success "✅ Serveur démarré avec succès!"
-    log_info "🌐 API disponible sur: http://localhost:5000"
+    log_info "🌐 API disponible sur: https://backend-7oumaligue-hrd4bqesgcefg5h4.francecentral-01.azurewebsites.net"
     log_info "📊 Dashboard PM2: pm2 monit"
     log_info "📝 Logs: pm2 logs 7oumaligue-backend"
 else

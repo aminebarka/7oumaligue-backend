@@ -42,7 +42,7 @@ if errorlevel 1 (
 call :writeLog "🔍 Vérification de la santé du serveur..."
 
 REM Vérifier si le serveur répond
-curl -s http://localhost:5000/health >nul 2>&1
+curl -s https://backend-7oumaligue-hrd4bqesgcefg5h4.francecentral-01.azurewebsites.net/health >nul 2>&1
 if errorlevel 1 (
     call :writeLog "⚠️ Serveur non réactif, redémarrage..."
     pm2 restart 7oumaligue-backend
